@@ -29,11 +29,23 @@ navbarPage("CalEnviroScreen",
                  mainPanel("OUTPUT GOES HERE",
                             plotOutput("")) # end mainPanel
              ), # end tabpanel 
-    tabPanel("Widget 2 - Bar Graph")
+    tabPanel("Widget 2 - Bar Graph"),
+    sidebarLayout(
+      sidebarPanel(
+        sliderInput("bins", "Number of bins:", min = 1, max = 50, value = 30)
+      ),
+      mainPanel(plotOutput("distPlot"))
+    )
     ) #end navbar
 ) # end ui
 
-server <- function(input, output) {}
+server <- function(input, output) {
+  output$distPlot <- renderPlot({
+    x    <- faithful[, 2]
+    bins <- seq(min(x), max(x), length.out = input$bins + 1)
+    hist(x, breaks = bins, col = 'darkgray', border = 'white')
+  })
+}
 
 shinyApp(ui = ui, server = server)
 
