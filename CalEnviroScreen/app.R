@@ -35,9 +35,17 @@ navbarPage("CalEnviroScreen",
       ), #end mainpanel
     ), # end tabPanel 1
     tabPanel("Pollution Map", # start panel 2
+             sidebarLayout(
+               sidebarPanel(
+                 checkboxGroupInput(inputId = "pick_california_county",
+                                    label = "Choose Pollution Variable:",
+                                    choices = unique(calenviroscreen4$california_county)
+                 ) # end checkboxGroupInput
+               ), #end sidebarPanel  
              mainPanel( # start main panel 2
-               tmapOutput("tmap_ej") # ERROR
+               tmapOutput("tmap_ej")
                ) # end main panel 2
+             ) # end sidebarPanel
              ), # end tabpanel 2
     tabPanel("Pollution Burden Per Capita",
              sidebarLayout(
@@ -73,7 +81,9 @@ pollution_map_sf <- pollution_map %>%
 
 output$tmap_ej <- renderTmap({
   tm_shape(pollution_map_sf) +
-    tm_dots()
+    tm_dots() +
+    tm_borders(lty = "solid", col = "khaski") +
+    tm_polygons(col = "lightblue")
 })
   
 # output for map filters
