@@ -6,6 +6,7 @@ library(here)
 library(readxl)
 library(janitor)
 library(sf)
+library(tmap)
 
 # read in data
 calenviroscreen4 <- read_excel(here("Data", "calenviroscreen40resultsdatadictionary_f_2021.xlsx")) %>%
@@ -34,17 +35,10 @@ navbarPage("CalEnviroScreen",
       ), #end mainpanel
     ), # end tabPanel 1
     tabPanel("Pollution Map", # start panel 2
-             sidebarLayout( # add sidebar selector
-                sidebarPanel(
-                checkboxGroupInput(inputId = "pick_california_county",
-                                    label = "Choose California County:",
-                                    choices = unique(calenviroscreen4$california_county)
-                 ) # end checkboxGroupInput
-               ), #end sidebarPanel                 
-                  mainPanel("Map of California",
-                            plotOutput("cal_plot1")) # add in Rmarkdown plot by putting `tmapOutput("ej_map")`
-             ) # end sidebarLayout
-    ), # end tabpanel 2
+             mainPanel( # start main panel 2
+               tmapOutput("tmap_ej") # ERROR
+               ) # end main panel 2
+             ), # end tabpanel 2
     tabPanel("Pollution Burden Per Capita",
              sidebarLayout(
                sidebarPanel(
@@ -64,36 +58,43 @@ navbarPage("CalEnviroScreen",
 
 server <- function(input, output) {
   
-  
-# data for map
+# data for ej map
   
 pollution_map <- calenviroscreen4 %>%
   select(total_population:ces_4_0_percentile_range, haz_waste, haz_waste_pctl, pesticides, pesticides_pctl, tox_release, tox_release_pctl, pollution_burden, pollution_burden_score, pollution_burden_pctl) %>%
   group_by(california_county)
 
-coord <- pollution_map %>%
+pollution_map_sf <- pollution_map %>%
   st_as_sf(coords = c("longitude", "latitude"))
+
+# end data for ej map
+
+# output for ej map
+
+output$tmap_ej <- renderTmap({
+  tm_shape(pollution_map_sf) +
+    tm_dots()
+})
   
+# output for map filters
   cal_reactive1 <- reactive({
     calenviroscreen4 %>%
       filter(california_county %in% input$pick_california_county)
   }) # end output$cal_plot 1
   
+  
+# output for wigit 2
   cal_reactive2 <- reactive({
     calenviroscreen4 %>%
       filter(california_county %in% input$pick_california_county)
   }) # end output$cal_plot 2
   
-    output$cal_plot1 <- renderPlot(
-    ggplot(data = cal_reactive1(), aes(x = ozone, y = haz_waste)) +
+# graph for wigit 2
+    output$cal_plot2 <- renderPlot(
+    ggplot(data = cal_reactive2(), aes(x = ozone, y = haz_waste)) +
     geom_point(aes(color = california_county))
     ) # end output$cal_plot1
-
-output$cal_plot2 <- renderPlot(
-  ggplot(data = cal_reactive2(), aes(x = ozone, y = haz_waste)) +
-    geom_point(aes(color = california_county))
-)
-} # end output$cal_plot2
+} # end server
 
 
 shinyApp(ui = ui, server = server)
