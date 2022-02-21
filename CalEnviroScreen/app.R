@@ -10,11 +10,13 @@ library(tmap)
 library(viridis)
 
 # read in data for wigit 1
-calenviroscreen4 <- read_excel(here("Data", "calenviroscreen40resultsdatadictionary_f_2021.xlsx")) %>%
-  mutate_if(is.numeric, round, digits = 3) %>%
+suppressWarnings({
+calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictionary_f_2021.xlsx")) %>%
+  mutate_if(is.numeric, round, digits = 2) %>%
   na_if(0.000) %>%
   drop_na() %>%
   clean_names()
+})
 
 # end data for wigit 1
 
@@ -57,17 +59,17 @@ navbarPage("CalEnviroScreen",
         ) # end fluidRow
       ), #end mainpanel
     ), # end tabPanel 1
-    tabPanel("California Pollution Data Visualization",
+    tabPanel("California Pollution Score by Poverty",
               sidebarLayout(
                 sidebarPanel(
-                  checkboxGroupInput(inputId = "pick_california_county",
-                                     label = "Choose California County:",
+                  selectInput(inputId = "pick_california_county",
+                                     label = h3("Choose California County:"),
                                      choices = unique(calenviroscreen4$california_county),
-                                     selected = "Los Angeles"
-                  ) # end checkboxGroupInput 2
+                                     selected = "Los Angeles"), #end checkboxGroupInput
+                  hr(),
+                  helpText("By selecting a county from the top-down menu, users can view the differences in the pollution buden score."),
                 ), # end sidebarPanel 2
-              mainPanel("Pollution Burden Per Capita",
-                        plotOutput("cal_plot2")) # end mainPanel 2
+              mainPanel(plotOutput("pollution_plot")) # end mainPanel 2
               ) # end sidebarLayout 2
     ), # end tabpanel 2
     tabPanel("California Pollution Map", # start panel 2
@@ -109,23 +111,23 @@ server <- function(input, output) {
   
   cal_reactive1 <- reactive({
     pollution_map %>%
-      filter(california_county %in% input$pick_california_county)
+      filter(california_county %in% c(input$pick_california_county))
   }) 
   
 # reactive plot
   
   output$pollution_plot <- renderPlot(
     
-    ggplot(data = cal_reactive1(), aes(x = california_county, y = pollution_burden_score)) +
-      geom_col(aes(fill = california_county)) +
-      coord_flip() +
-      theme_minimal() +
-      theme(legend.position = "none") +
-      labs(x = "", y = "Pollution Burden Score") +
-      scale_color_viridis(discrete = TRUE)+
-      scale_fill_viridis(discrete = TRUE) +
-      geom_text(aes(label=n, hjust= -0.5, size = 3))
+    ggplot(data = cal_reactive1(), aes(x = poverty, y = pollution_burden)) +
+      geom_col(fill = "darkred", color = "black", stat = "identity", width = 0.5) +
+      theme_minimal(base_size = 12) +
+      labs(x = "Poverty", 
+           y = "Pollution Burden",
+           title = "Pollution Burden by Poverty") +
+      theme(axis.text = element_text(size = 12))
   ) # end renderPlot
+  
+  # end wigit 1
   
 # output for wigit 2
 
