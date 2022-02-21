@@ -7,11 +7,34 @@ library(readxl)
 library(janitor)
 library(sf)
 library(tmap)
+library(viridis)
 
-# read in data
+# read in data for wigit 1
 calenviroscreen4 <- read_excel(here("Data", "calenviroscreen40resultsdatadictionary_f_2021.xlsx")) %>%
+  mutate_if(is.numeric, round, digits = 3) %>%
+  na_if(0.000) %>%
   drop_na() %>%
   clean_names()
+
+# end data for wigit 1
+
+pollution_map <- calenviroscreen4 %>%
+  select(total_population:ces_4_0_percentile_range, haz_waste, pesticides, tox_release, pollution_burden, pollution_burden_score, poverty) %>%
+  group_by(california_county)
+
+# map data
+
+pollution_map_sf <- pollution_map %>%
+  st_as_sf(coords = c("longitude", "latitude"))
+
+ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")) %>%
+  clean_names() 
+
+# end map data
+
+# read in data for wigit 2
+
+# end data for wigit 2
 
 # custom theme
 shiny_theme <- bs_theme(bootswatch = "minty")
@@ -34,18 +57,32 @@ navbarPage("CalEnviroScreen",
         ) # end fluidRow
       ), #end mainpanel
     ), # end tabPanel 1
-    tabPanel("Pollution Map", # start panel 2
+    tabPanel("California Pollution Data Visualization",
+              sidebarLayout(
+                sidebarPanel(
+                  checkboxGroupInput(inputId = "pick_california_county",
+                                     label = "Choose California County:",
+                                     choices = unique(calenviroscreen4$california_county),
+                                     selected = "Los Angeles"
+                  ) # end checkboxGroupInput 2
+                ), # end sidebarPanel 2
+              mainPanel("Pollution Burden Per Capita",
+                        plotOutput("cal_plot2")) # end mainPanel 2
+              ) # end sidebarLayout 2
+    ), # end tabpanel 2
+    tabPanel("California Pollution Map", # start panel 2
              sidebarLayout(
                sidebarPanel(
                  checkboxGroupInput(inputId = "pick_california_county",
-                                    label = "Choose Pollution Variable:",
-                                    choices = unique(calenviroscreen4$california_county)
+                                    label = "Choose California County:",
+                                    choices = unique(calenviroscreen4$california_county),
+                                    selected = "Los Angeles"
                  ) # end checkboxGroupInput
                ), #end sidebarPanel  
              mainPanel( # start main panel 2
                tmapOutput("tmap_ej")
                ) # end main panel 2
-             ) # end sidebarPanel
+             ) # end sidebarLayout
              ), # end tabpanel 2
     tabPanel("Pollution Burden Per Capita",
              sidebarLayout(
@@ -65,35 +102,46 @@ navbarPage("CalEnviroScreen",
 # create server object
 
 server <- function(input, output) {
+
+# output for wigit 1
   
-# data for ej map
+# select county
   
-pollution_map <- calenviroscreen4 %>%
-  select(total_population:ces_4_0_percentile_range, haz_waste, haz_waste_pctl, pesticides, pesticides_pctl, tox_release, tox_release_pctl, pollution_burden, pollution_burden_score, pollution_burden_pctl) %>%
-  group_by(california_county)
-
-pollution_map_sf <- pollution_map %>%
-  st_as_sf(coords = c("longitude", "latitude"))
-
-# end data for ej map
-
-# output for ej map
+  cal_reactive1 <- reactive({
+    pollution_map %>%
+      filter(california_county %in% input$pick_california_county)
+  }) 
+  
+# reactive plot
+  
+  output$pollution_plot <- renderPlot(
+    
+    ggplot(data = cal_reactive1(), aes(x = california_county, y = pollution_burden_score)) +
+      geom_col(aes(fill = california_county)) +
+      coord_flip() +
+      theme_minimal() +
+      theme(legend.position = "none") +
+      labs(x = "", y = "Pollution Burden Score") +
+      scale_color_viridis(discrete = TRUE)+
+      scale_fill_viridis(discrete = TRUE) +
+      geom_text(aes(label=n, hjust= -0.5, size = 3))
+  ) # end renderPlot
+  
+# output for wigit 2
 
 output$tmap_ej <- renderTmap({
   tm_shape(pollution_map_sf) +
-    tm_dots() +
-    tm_borders(lty = "solid", col = "khaski") +
-    tm_polygons(col = "lightblue")
+    tm_dots('pollution_burden')
 })
   
-# output for map filters
-  cal_reactive1 <- reactive({
-    calenviroscreen4 %>%
+
+  pollution_variables <- reactive({
+    pollution_map %>%
       filter(california_county %in% input$pick_california_county)
   }) # end output$cal_plot 1
   
   
-# output for wigit 2
+# output for wigit 3
   cal_reactive2 <- reactive({
     calenviroscreen4 %>%
       filter(california_county %in% input$pick_california_county)
