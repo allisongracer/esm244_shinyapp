@@ -1,3 +1,6 @@
+##### packages #####
+
+
 library(shiny)
 library(tidyverse)
 library(bslib)
@@ -7,17 +10,64 @@ library(readxl)
 library(janitor)
 library(sf)
 library(tmap)
+library(viridis)
+library
 
-# read in data
-calenviroscreen4 <- read_excel(here("Data", "calenviroscreen40resultsdatadictionary_f_2021.xlsx")) %>%
+
+##### data and wrangling #####
+
+# read in data for tab 2
+suppressWarnings({
+calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictionary_f_2021.xlsx")) %>%
+  mutate_if(is.numeric, round, digits = 2) %>%
+  na_if(0.000) %>%
   drop_na() %>%
   clean_names()
+})
 
-# custom theme
-shiny_theme <- bs_theme(bootswatch = "minty")
+# end data for tab 2
 
-# start shiny app
+pollution_map <- calenviroscreen4 %>%
+  select(total_population:ces_4_0_percentile_range, haz_waste, pesticides, tox_release, pollution_burden, pollution_burden_score, poverty) %>%
+  group_by(california_county)
+
+# read in data for tab 3
+
+pollution_map_sf <- pollution_map %>%
+  st_as_sf(coords = c('longitude', 'latitude'))
+
+ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")) %>%
+  clean_names() %>%
+  select(county_name = name, land_area = aland) %>%
+  st_as_sf(coords = "geometry")
+
+# end data for tab 3
+
+# read in data for tab 4
+
+# end data for tab 4
+
+# read in data for tab 5
+
+# end data for tab 5
+
+
+##### theme #####
+
+shiny_theme <- bs_theme(
+  bg = "#FFDAB9",
+  fg = "#800000",
+  primary = "white",
+  base_font = font_google("Lato"),
+  heading_font = font_google("Lato")
+)
+
+##### start shiny app UI #####
+
 ui <- fluidPage(theme = shiny_theme,
+
+##### homepage - tab 1 #####
+                
 navbarPage("CalEnviroScreen",
     tabPanel("Project Overview",
       mainPanel(
@@ -33,10 +83,29 @@ navbarPage("CalEnviroScreen",
           ),
         ) # end fluidRow
       ), #end mainpanel
-    ), # end tabPanel 1
-    tabPanel("Pollution Map", # start panel 2
+    ), # end tabPanel
+    
+##### tab 2  #####
+    
+    tabPanel("California Pollution Score by Poverty",
+              sidebarLayout(
+                sidebarPanel(
+                  selectInput(inputId = "pick_california_county",
+                                     label = h3("Choose California County:"),
+                                     choices = unique(calenviroscreen4$california_county),
+                                     selected = "Los Angeles"), #end checkboxGroupInput
+                  hr(),
+                  helpText("By selecting a county from the top-down menu, users can view the differences in the pollution buden score."),
+                ), # end sidebarPanel 2
+              mainPanel(plotOutput("pollution_plot")) # end mainPanel 2
+              ) # end sidebarLayout 2
+    ), # end tabpanel 2
+
+##### tab 3 #####
+
+    tabPanel("California Pollution Map", # start panel 2
              mainPanel( # start main panel 2
-               tmapOutput("tmap_ej") # ERROR
+               tmapOutput("tmap_ej")
                ) # end main panel 2
              ), # end tabpanel 2
     tabPanel("Pollution Burden Per Capita",
@@ -51,39 +120,60 @@ navbarPage("CalEnviroScreen",
                          plotOutput("cal_plot2"))
              ) # end sidebarLayout
     ), # end tabpanel 3
+
+##### tab 4 #####
+
+
+##### tab 5 #####
+
     ) #end navbar
 ) # end ui
 
-# create server object
+###### End user interface : start server #####
 
 server <- function(input, output) {
+
+##### tab 2 output #####
   
-# data for ej map
+# select county
   
-pollution_map <- calenviroscreen4 %>%
-  select(total_population:ces_4_0_percentile_range, haz_waste, haz_waste_pctl, pesticides, pesticides_pctl, tox_release, tox_release_pctl, pollution_burden, pollution_burden_score, pollution_burden_pctl) %>%
-  group_by(california_county)
-
-pollution_map_sf <- pollution_map %>%
-  st_as_sf(coords = c("longitude", "latitude"))
-
-# end data for ej map
-
-# output for ej map
+  cal_reactive1 <- reactive({
+    pollution_map %>%
+      filter(california_county %in% c(input$pick_california_county))
+  }) 
+  
+# reactive plot
+  
+  output$pollution_plot <- renderPlot(
+    
+    ggplot(data = cal_reactive1(), aes(x = poverty, y = pollution_burden)) +
+      geom_col(fill = "darkred", color = "black", stat = "identity", width = 0.5) +
+      theme_minimal(base_size = 12) +
+      labs(x = "Poverty", 
+           y = "Pollution Burden",
+           title = "Pollution Burden by Poverty") +
+      theme(axis.text = element_text(size = 12))
+  ) # end renderPlot
+  
+##### tab 3 output #####
 
 output$tmap_ej <- renderTmap({
-  tm_shape(pollution_map_sf) +
-    tm_dots()
+    tm_shape(ca_county_map) +
+    tm_polygons("land_area", legend.show = FALSE) +
+    tm_shape(pollution_map_sf) +
+    tm_bubbles("pollution_burden_score")
 })
-  
-# output for map filters
-  cal_reactive1 <- reactive({
-    calenviroscreen4 %>%
+
+  pollution_variables <- reactive({
+    pollution_map %>%
       filter(california_county %in% input$pick_california_county)
   }) # end output$cal_plot 1
   
   
-# output for wigit 2
+##### tab 4 output #####
+  
+  
+##### tab 5 output #####
   cal_reactive2 <- reactive({
     calenviroscreen4 %>%
       filter(california_county %in% input$pick_california_county)
@@ -94,7 +184,9 @@ output$tmap_ej <- renderTmap({
     ggplot(data = cal_reactive2(), aes(x = ozone, y = haz_waste)) +
     geom_point(aes(color = california_county))
     ) # end output$cal_plot1
-} # end server
+} 
+
+##### end server #####
 
 
 shinyApp(ui = ui, server = server)
