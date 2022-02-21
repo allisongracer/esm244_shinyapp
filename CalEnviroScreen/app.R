@@ -8,6 +8,7 @@ library(janitor)
 library(sf)
 library(tmap)
 library(viridis)
+library
 
 # read in data for wigit 1
 suppressWarnings({
@@ -27,10 +28,13 @@ pollution_map <- calenviroscreen4 %>%
 # map data
 
 pollution_map_sf <- pollution_map %>%
-  st_as_sf(coords = c("longitude", "latitude"))
+  st_as_sf(coords = c('longitude', 'latitude'))
 
 ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")) %>%
-  clean_names() 
+  clean_names() %>%
+  select(county_name = name, land_area = aland) %>%
+  st_as_sf(coords = "geometry")
+  
 
 # end map data
 
@@ -73,18 +77,9 @@ navbarPage("CalEnviroScreen",
               ) # end sidebarLayout 2
     ), # end tabpanel 2
     tabPanel("California Pollution Map", # start panel 2
-             sidebarLayout(
-               sidebarPanel(
-                 checkboxGroupInput(inputId = "pick_california_county",
-                                    label = "Choose California County:",
-                                    choices = unique(calenviroscreen4$california_county),
-                                    selected = "Los Angeles"
-                 ) # end checkboxGroupInput
-               ), #end sidebarPanel  
              mainPanel( # start main panel 2
                tmapOutput("tmap_ej")
                ) # end main panel 2
-             ) # end sidebarLayout
              ), # end tabpanel 2
     tabPanel("Pollution Burden Per Capita",
              sidebarLayout(
@@ -133,9 +128,10 @@ server <- function(input, output) {
 
 output$tmap_ej <- renderTmap({
   tm_shape(pollution_map_sf) +
-    tm_dots('pollution_burden')
+  tm_dots("pollution_burden") +
+    tm_shape(ca_county_map) +
+    tm_fill("land_area", legend.show = FALSE)
 })
-  
 
   pollution_variables <- reactive({
     pollution_map %>%
