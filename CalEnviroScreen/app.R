@@ -10,6 +10,8 @@ library(tmap)
 library(viridis)
 library
 
+tmap_mode("view")
+
 # read in data for wigit 1
 suppressWarnings({
 calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictionary_f_2021.xlsx")) %>%
@@ -43,10 +45,20 @@ ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")
 # end data for wigit 2
 
 # custom theme
-shiny_theme <- bs_theme(bootswatch = "minty")
+shiny_theme <- bs_theme(
+  bg = "#4e5d6c",
+  fg = "honeydew",
+  primary = "white",
+  base_font = font_google("Lato"),
+  heading_font = font_google("Lato")
+)
 
 # start shiny app
+
 ui <- fluidPage(theme = shiny_theme,
+
+# homepage
+                
 navbarPage("CalEnviroScreen",
     tabPanel("Project Overview",
       mainPanel(
@@ -62,7 +74,10 @@ navbarPage("CalEnviroScreen",
           ),
         ) # end fluidRow
       ), #end mainpanel
-    ), # end tabPanel 1
+    ), # end tabPanel
+    
+    # tab 1
+    
     tabPanel("California Pollution Score by Poverty",
               sidebarLayout(
                 sidebarPanel(
@@ -127,10 +142,10 @@ server <- function(input, output) {
 # output for wigit 2
 
 output$tmap_ej <- renderTmap({
-  tm_shape(pollution_map_sf) +
-  tm_dots("pollution_burden") +
     tm_shape(ca_county_map) +
-    tm_fill("land_area", legend.show = FALSE)
+    tm_polygons("land_area", legend.show = FALSE) +
+    tm_shape(pollution_map_sf) +
+    tm_bubbles("pollution_burden_score")
 })
 
   pollution_variables <- reactive({
