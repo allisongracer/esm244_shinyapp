@@ -1,6 +1,4 @@
-##### packages #####
-
-
+#### packages
 library(shiny)
 library(tidyverse)
 library(bslib)
@@ -13,30 +11,25 @@ library(tmap)
 library(viridis)
 library
 
+tmap_mode("view")
 
+# read in data for widgit 1
 ##### data and wrangling #####
-
-# read in data for tab 2
 suppressWarnings({
-  calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictionary_f_2021.xlsx")) %>%
-    mutate_if(is.numeric, round, digits = 2) %>%
-    na_if(0.000) %>%
-    drop_na() %>%
-    clean_names()
+calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictionary_f_2021.xlsx")) %>%
+  mutate_if(is.numeric, round, digits = 2) %>%
+  na_if(0.000) %>%
+  drop_na() %>%
+  clean_names()
 })
 
-# end data for tab 2
+# end data for wigit 1
 
 pollution_map <- calenviroscreen4 %>%
   select(total_population:ces_4_0_percentile_range, haz_waste, pesticides, tox_release, pollution_burden, pollution_burden_score, poverty) %>%
-  group_by(california_county) 
+  group_by(california_county)
 
-pollution_choose <- calenviroscreen4 %>% 
-  select(california_county, pm2_5_pctl, diesel_pm_pctl, lead_pctl, pesticides_pctl, tox_release_pctl,haz_waste_pctl) %>%
-  group_by(california_county) %>% 
-  summarize(mean_result= mean(mean_result))
-
-# read in data for tab 3
+# map data
 
 pollution_map_sf <- pollution_map %>%
   st_as_sf(coords = c('longitude', 'latitude'))
@@ -45,144 +38,95 @@ ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")
   clean_names() %>%
   select(county_name = name, land_area = aland) %>%
   st_as_sf(coords = "geometry")
+  
 
-# end data for tab 3
+# end map data
 
-# read in data for tab 4
+# read in data for wigit 2
 
-# end data for tab 4
+# end data for wigit 2
 
-# read in data for tab 5
-
-# end data for tab 5
-
-
-##### theme #####
-
+# custom theme
 shiny_theme <- bs_theme(
-  bg = "#FFDAB9",
-  fg = "#800000",
+  bg = "#4e5d6c",
+  fg = "honeydew",
   primary = "white",
   base_font = font_google("Lato"),
   heading_font = font_google("Lato")
 )
 
-##### start shiny app UI #####
+# start shiny app
 
 ui <- fluidPage(theme = shiny_theme,
+
+# homepage
                 
-                ##### homepage - tab 1 #####
-                
-                navbarPage("CalEnviroScreen",
-                           tabPanel("Project Overview",
-                                    mainPanel(
-                                      fluidRow(
-                                        h1("Project Description"),
-                                        p("CalEnviroScreen was designed to assist CalEPA with carrying out its environmental justice mission to ensure the fair treatment of all Californians, including minority and low-income communities." 
-                                        ),
-                                        br(), 
-                                        p("CalEnviroScreen uses environmental, health, and socioeconomic information to produce scores for every census tract in the state. An area with a high score is one that experiences a much higher pollution burden than areas with low scores. CalEnviroScreen ranks communities based on data that are available from state and federal government sources."
-                                        ),
-                                        br(),
-                                        p("The purpose of this Shiny App is to explore data from CalEnviroScreen 2.0 (2014),  3.0 (2018), and 4.0 (2021) to better visualize how pollution-based parameters affect demographics in California, and to analyze how these parameters have or have not changed over time." 
-                                        ),
-                                      ) # end fluidRow
-                                    ), #end mainpanel
-                           ), # end tabPanel
-                           
-                           ##### tab 2  #####
-                           
-                           tabPanel("California Pollution Score by Poverty",
-                                    sidebarLayout(
-                                      sidebarPanel(
-                                        selectInput(inputId = "pick_california_county",
-                                                    label = h3("Choose California County:"),
-                                                    choices = unique(calenviroscreen4$california_county),
-                                                    selected = "Los Angeles"), #end checkboxGroupInput
-                                        hr(),
-                                        helpText("By selecting a county from the top-down menu, users can view the differences in the pollution burden score."),
-                                      ), # end sidebarPanel 2
-                                      mainPanel(plotOutput("pollution_plot")) # end mainPanel 2
-                                    ) # end sidebarLayout 2
-                           ), # end tabpanel 2
-                           
-                           ##### tab 3 #####
-                           
-                           tabPanel("California Pollution Map", # start panel 2
-                                    sidebarLayout(
-                                      sidebarPanel(
-                                        "Choose Pollutant",
-                                        br(),
-                                        hr(),
-                                        selectInput(inputId = "choose_pollutant",
-                                                    label = "Choose Pollutant",
-                                                    choices = unique(pollution_choose),
-                                      ) #end sidebarPanel
-                                    mainPanel( # start main panel 2
-                                      tmapOutput("tmap_ej")
-                                    ) # end main panel 2
-                                    ) #end sidebarLayout
-                           ), # end tabpanel 2
-                           tabPanel("Pollution Burden Per Capita",
-                                    sidebarLayout(
-                                      sidebarPanel(
-                                        checkboxGroupInput(inputId = "pick_california_county",
-                                                           label = "Choose California County:",
-                                                           choices = unique(calenviroscreen4$california_county)
-                                        ) # end checkboxGroupInput
-                                      ), #end sidebarPanel                 
-                                      mainPanel("Pollution Burden Per Capita",
-                                                plotOutput("cal_plot2"))
-                                    ) # end sidebarLayout
-                           ), # end tabpanel 3
-                           
-                           ##### tab 4 #####
-                #            sidebarLayout(
-                #              sidebarPanel(
-                #                "What do you want to represent?",
-                #                hr(),
-                #                selectInput(inputId = "pick_pollutant_map",
-                #                            label = "Select pollutant",
-                #                            choices = unique(df$gm_chemical_name),
-                #                            selected = "50 Free"
-                #                ), # End selectInput
-                #                
-                #                sliderInput(inputId = "pick_year_map",
-                #                            label = "Time range",
-                #                            min = min(mapdata$year),
-                #                            max = max(mapdata$year),
-                #                            value = min(mapdata$year),
-                #                            animate=T
-                #                ) # End sliderInput
-                #                
-                #              ), # End of sidebarPanel
-                #              mainPanel(
-                #                column(
-                #                  "California Counties Map",
-                #                  plotOutput(outputId = "gw_map", width = "150%"), width = 8)
-                #              ) # End of mainPanel
-                #            ) # End of sidebarLayout
-                # ) # End of tabPanel map
-                           
-                           ##### tab 5 #####
-                           
-                ) #end navbar
+navbarPage("CalEnviroScreen",
+    tabPanel("Project Overview",
+      mainPanel(
+        fluidRow(
+        h1("Project Description"),
+        p("CalEnviroScreen was designed to assist CalEPA with carrying out its environmental justice mission to ensure the fair treatment of all Californians, including minority and low-income communities." 
+          ),
+        br(), 
+        p("CalEnviroScreen uses environmental, health, and socioeconomic information to produce scores for every census tract in the state. An area with a high score is one that experiences a much higher pollution burden than areas with low scores. CalEnviroScreen ranks communities based on data that are available from state and federal government sources."
+          ),
+        br(),
+        p("The purpose of this Shiny App is to explore data from CalEnviroScreen 2.0 (2014),  3.0 (2018), and 4.0 (2021) to better visualize how pollution-based parameters affect demographics in California, and to analyze how these parameters have or have not changed over time." 
+          ),
+        ) # end fluidRow
+      ), #end mainpanel
+    ), # end tabPanel
+    
+    # tab 1
+    
+    tabPanel("California Pollution Score by Poverty",
+              sidebarLayout(
+                sidebarPanel(
+                  selectInput(inputId = "pick_california_county",
+                                     label = h3("Choose California County:"),
+                                     choices = unique(calenviroscreen4$california_county),
+                                     selected = "Los Angeles"), #end checkboxGroupInput
+                  hr(),
+                  helpText("By selecting a county from the top-down menu, users can view the differences in the pollution burden score."),
+                ), # end sidebarPanel 2
+              mainPanel(plotOutput("pollution_plot")) # end mainPanel 2
+              ) # end sidebarLayout 2
+    ), # end tabpanel 2
+    tabPanel("California Pollution Map", # start panel 2
+             mainPanel( # start main panel 2
+               tmapOutput("tmap_ej")
+               ) # end main panel 2
+             ), # end tabpanel 2
+    tabPanel("Pollution Burden Per Capita",
+             sidebarLayout(
+               sidebarPanel(
+                 checkboxGroupInput(inputId = "pick_california_county",
+                                    label = "Choose California County:",
+                                    choices = unique(calenviroscreen4$california_county)
+                 ) # end checkboxGroupInput
+               ), #end sidebarPanel                 
+               mainPanel("Pollution Burden Per Capita",
+                         plotOutput("cal_plot2"))
+             ) # end sidebarLayout
+    ), # end tabpanel 3
+    ) #end navbar
 ) # end ui
 
-###### End user interface : start server #####
+# create server object
 
 server <- function(input, output) {
+
+# output for wigit 1
   
-  ##### tab 2 output #####
-  
-  # select county
+# select county
   
   cal_reactive1 <- reactive({
     pollution_map %>%
       filter(california_county %in% c(input$pick_california_county))
   }) 
   
-  # reactive plot
+# reactive plot
   
   output$pollution_plot <- renderPlot(
     
@@ -195,38 +139,35 @@ server <- function(input, output) {
       theme(axis.text = element_text(size = 12))
   ) # end renderPlot
   
-  ##### tab 3 output #####
+  # end wigit 1
   
-  output$tmap_ej <- renderTmap({
+# output for wigit 2
+
+output$tmap_ej <- renderTmap({
     tm_shape(ca_county_map) +
-      tm_polygons("land_area", legend.show = FALSE) +
-      tm_shape(pollution_map_sf) +
-      tm_bubbles("pollution_burden_score")
-  })
-  
+    tm_polygons("land_area", legend.show = FALSE) +
+    tm_shape(pollution_map_sf) +
+    tm_bubbles("pollution_burden_score")
+})
+
   pollution_variables <- reactive({
     pollution_map %>%
       filter(california_county %in% input$pick_california_county)
   }) # end output$cal_plot 1
   
   
-  ##### tab 4 output #####
-  
-  
-  ##### tab 5 output #####
+# output for wigit 3
   cal_reactive2 <- reactive({
     calenviroscreen4 %>%
       filter(california_county %in% input$pick_california_county)
   }) # end output$cal_plot 2
   
-  # graph for wigit 2
-  output$cal_plot2 <- renderPlot(
+# graph for widgit 2
+    output$cal_plot2 <- renderPlot(
     ggplot(data = cal_reactive2(), aes(x = ozone, y = haz_waste)) +
-      geom_point(aes(color = california_county))
-  ) # end output$cal_plot1
-} 
-
-##### end server #####
+    geom_point(aes(color = california_county))
+    ) # end output$cal_plot1
+} # end server
 
 
 shinyApp(ui = ui, server = server)
