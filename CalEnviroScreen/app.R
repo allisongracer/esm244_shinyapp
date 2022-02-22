@@ -10,8 +10,7 @@ library(readxl)
 library(janitor)
 library(sf)
 library(tmap)
-library(viridis)
-library
+
 
 
 ##### data and wrangling #####
@@ -68,19 +67,22 @@ ui <- fluidPage(theme = shiny_theme,
 
 ##### homepage - tab 1 #####
                 
-navbarPage("CalEnviroScreen",
+navbarPage("CalEnviroScreen Interactive Map",
     tabPanel("Project Overview",
+             titlePanel(h2("Environmental Justice Screening and Mapping Tool", align = "center")),
       mainPanel(
         fluidRow(
-        h1("Project Description"),
-        p("CalEnviroScreen was designed to assist CalEPA with carrying out its environmental justice mission to ensure the fair treatment of all Californians, including minority and low-income communities." 
+        h1("Project Description", align = "center"),
+        p("CalEnviroScreen was designed to assist CalEPA with carrying out its environmental justice mission to ensure the fair treatment of all Californians, including minority and low-income communities.",
           ),
         br(), 
-        p("CalEnviroScreen uses environmental, health, and socioeconomic information to produce scores for every census tract in the state. An area with a high score is one that experiences a much higher pollution burden than areas with low scores. CalEnviroScreen ranks communities based on data that are available from state and federal government sources."
+        p("CalEnviroScreen uses environmental, health, and socioeconomic information to produce scores for every census tract in the state. An area with a high score is one that experiences a much higher pollution burden than areas with low scores. CalEnviroScreen ranks communities based on data that are available from state and federal government sources.",
           ),
         br(),
-        p("The purpose of this Shiny App is to explore data from CalEnviroScreen 2.0 (2014),  3.0 (2018), and 4.0 (2021) to better visualize how pollution-based parameters affect demographics in California, and to analyze how these parameters have or have not changed over time." 
-          ),
+        p("The purpose of this Shiny App is to explore data from CalEnviroScreen 2.0 (2014),  3.0 (2018), and 4.0 (2021) to better visualize how pollution-based parameters affect demographics in California, and to analyze how these parameters have or have not changed over time."),
+        br(),
+        h2("Data Citation:", align = "center"),
+        p("1. United States Environmental Protection Agency. 2018 - 2020. EJScreen. Retrieved: 1/12/22, from url https://www.epa.gov/ejscreen/download-ejscreen-data"),
         ) # end fluidRow
       ), #end mainpanel
     ), # end tabPanel
@@ -90,12 +92,12 @@ navbarPage("CalEnviroScreen",
     tabPanel("California Pollution Score by Poverty",
               sidebarLayout(
                 sidebarPanel(
+                  helpText("By selecting a county from the top-down menu, users can view how different variables affect each county"),
                   selectInput(inputId = "pick_california_county",
                                      label = h3("Choose California County:"),
                                      choices = unique(calenviroscreen4$california_county),
-                                     selected = "Los Angeles"), #end checkboxGroupInput
-                  hr(),
-                  helpText("By selecting a county from the top-down menu, users can view the differences in the pollution buden score."),
+                                     selected = "Los Angeles"
+                              ), #end selectInput
                 ), # end sidebarPanel 2
               mainPanel(plotOutput("pollution_plot")) # end mainPanel 2
               ) # end sidebarLayout 2
@@ -146,29 +148,22 @@ server <- function(input, output) {
   
   output$pollution_plot <- renderPlot(
     
-    ggplot(data = cal_reactive1(), aes(x = poverty, y = pollution_burden)) +
+    ggplot(data = cal_reactive1(), aes(x = poverty, y = pollution_burden_score)) +
       geom_col(fill = "darkred", color = "black", stat = "identity", width = 0.5) +
       theme_minimal(base_size = 12) +
-      labs(x = "Poverty", 
-           y = "Pollution Burden",
-           title = "Pollution Burden by Poverty") +
+      labs(x = "Low Income Percentiles", 
+           y = "Pollution Burden Score",
+           title = "Pollution Burden Score vs Poverty Percentiles") +
       theme(axis.text = element_text(size = 12))
   ) # end renderPlot
   
 ##### tab 3 output #####
 
 output$tmap_ej <- renderTmap({
-    tm_shape(ca_county_map) +
-    tm_polygons("land_area", legend.show = FALSE) +
     tm_shape(pollution_map_sf) +
-    tm_bubbles("pollution_burden_score")
+    tm_dots("pollution_burden_score") +
+    tm_basemap("OpenStreetMap")
 })
-
-  pollution_variables <- reactive({
-    pollution_map %>%
-      filter(california_county %in% input$pick_california_county)
-  }) # end output$cal_plot 1
-  
   
 ##### tab 4 output #####
   
