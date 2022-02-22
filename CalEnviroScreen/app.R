@@ -95,7 +95,7 @@ navbarPage("CalEnviroScreen",
                                      choices = unique(calenviroscreen4$california_county),
                                      selected = "Los Angeles"), #end checkboxGroupInput
                   hr(),
-                  helpText("By selecting a county from the top-down menu, users can view the differences in the pollution buden score."),
+                  helpText("By selecting a county from the top-down menu, users can view the differences in the pollution burden score."),
                 ), # end sidebarPanel 2
               mainPanel(plotOutput("pollution_plot")) # end mainPanel 2
               ) # end sidebarLayout 2
@@ -179,7 +179,7 @@ output$tmap_ej <- renderTmap({
       filter(california_county %in% input$pick_california_county)
   }) # end output$cal_plot 2
   
-# graph for wigit 2
+# graph for widgit 2
     output$cal_plot2 <- renderPlot(
     ggplot(data = cal_reactive2(), aes(x = ozone, y = haz_waste)) +
     geom_point(aes(color = california_county))
