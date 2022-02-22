@@ -177,7 +177,7 @@ navbarPage("CalEnviroScreen Interactive Map",
                 selectInput(inputId = "pick_california_county",
                             label = h3("Choose California County:"),
                             choices = unique(complete_df2$california_county),
-                            selected = "Los Angeles"), #end checkboxGroupInput
+                            selected = "Los Angeles"), #end dropdown county input
              hr(),
              helpText("By selecting a county from the top-down menu, users can view the changes in the pollution buden score through time, from 2014-2021."),
               ), # end sidebarPanel 5
