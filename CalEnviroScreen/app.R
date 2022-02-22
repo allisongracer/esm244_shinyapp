@@ -13,7 +13,7 @@ library
 
 tmap_mode("view")
 
-# read in data for wigit 1
+# read in data for widget 1
 suppressWarnings({
 calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictionary_f_2021.xlsx")) %>%
   mutate_if(is.numeric, round, digits = 2) %>%
@@ -22,8 +22,12 @@ calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictiona
   clean_names()
 })
 
+<<<<<<< HEAD
 
 # end data for wigit 1
+=======
+# end data for widget 1
+>>>>>>> main
 
 pollution_map <- calenviroscreen4 %>%
   select(total_population:ces_4_0_percentile_range, haz_waste, pesticides, tox_release, pollution_burden, pollution_burden_score, poverty) %>%
@@ -44,9 +48,60 @@ ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")
 
 # end map data
 
-# read in data for wigit 2
+# read in data for widget 2
 
-# end data for wigit 2
+# end data for widget 2
+
+# read in data for tab 5
+
+### read in the 2.0 data
+ces_2.0 <- read_csv(here("data", "cal_enviro_2.0.csv")) %>% 
+  clean_names()
+
+### read in the 3.0 data
+ces_3.0 <- read_csv(here("data", "cal_enviro_3.0.csv")) %>% 
+  clean_names()
+
+### read in the 4.0 data
+ces_4.0 <- read_excel(here("data", "calenviroscreen40resultsdatadictionary_F_2021.xlsx")) %>% 
+  clean_names()
+
+### Wrangle the data
+
+### sort by county for each data set, only include pollution percentage
+
+ces_2.0_clean <- ces_2.0 %>% 
+  select(`pollution_burden_pctl`, `california_county`) %>% 
+  group_by(california_county) %>% 
+  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
+  mutate(version = 2)
+
+
+ces_3.0_clean <- ces_3.0 %>% 
+  select(`pollution_burden_pctl`, `california_county`) %>% 
+  group_by(california_county) %>% 
+  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
+  mutate(version = 3)
+
+
+ces_4.0_clean <- ces_4.0 %>% 
+  select(`pollution_burden_pctl`, `california_county`) %>% 
+  group_by(california_county) %>% 
+  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
+  mutate(version = 4)
+
+
+complete_df <- bind_rows(ces_2.0_clean, ces_3.0_clean, ces_4.0_clean)
+
+complete_df2 <- complete_df %>% 
+  rename(year = version) 
+
+complete_df2$year[complete_df2$year == 2] <- 2014
+complete_df2$year[complete_df2$year == 3] <- 2018
+complete_df2$year[complete_df2$year == 4] <- 2021
+
+
+# end data for tab 5
 
 # custom theme
 shiny_theme <- bs_theme(
@@ -110,12 +165,25 @@ navbarPage("CalEnviroScreen Interactive Map",
                  checkboxGroupInput(inputId = "pick_california_county",
                                     label = "Choose California County:",
                                     choices = unique(calenviroscreen4$california_county)
-                 ) # end checkboxGroupInput
+                                    ) # end checkboxGroupInput
                ), #end sidebarPanel                 
                mainPanel("Pollution Burden Per Capita",
                          plotOutput("cal_plot2"))
              ) # end sidebarLayout
     ), # end tabpanel 3
+    tabPanel("California Pollution Burden Through Time",
+            sidebarLayout(
+              sidebarPanel(
+                selectInput(inputId = "pick_california_county",
+                            label = h3("Choose California County:"),
+                            choices = unique(complete_df2$california_county),
+                            selected = "Los Angeles"), #end checkboxGroupInput
+             hr(),
+             helpText("By selecting a county from the top-down menu, users can view the changes in the pollution buden score through time, from 2014-2021."),
+              ), # end sidebarPanel 5
+           mainPanel(plotOutput("pollutionburden_plot")) # end mainPanel 5
+            ) # end sidebarLayout 5
+          ), # end tabpanel 5
     ) #end navbar
 ) # end ui
 
