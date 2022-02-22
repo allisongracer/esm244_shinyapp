@@ -97,8 +97,6 @@ navbarPage("CalEnviroScreen Interactive Map",
                                      choices = unique(calenviroscreen4$california_county),
                                      selected = "Los Angeles"
                               ), #end selectInput
-                  hr(),
-                  helpText("By selecting a county from the top-down menu, users can view how different variables affect each county"),
                 ), # end sidebarPanel 2
               mainPanel(plotOutput("pollution_plot")) # end mainPanel 2
               ) # end sidebarLayout 2
