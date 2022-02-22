@@ -11,7 +11,7 @@ library(tmap)
 
 tmap_mode("view")
 
-# read in data for wigit 1
+# read in data for widget 1
 suppressWarnings({
 calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictionary_f_2021.xlsx")) %>%
   mutate_if(is.numeric, round, digits = 2) %>%
@@ -20,7 +20,7 @@ calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictiona
   clean_names()
 })
 
-# end data for wigit 1
+# end data for widget 1
 
 pollution_map <- calenviroscreen4 %>%
   select(total_population:ces_4_0_percentile_range, haz_waste, pesticides, tox_release, pollution_burden, pollution_burden_score, poverty) %>%
@@ -154,12 +154,25 @@ navbarPage("CalEnviroScreen Interactive Map",
                  checkboxGroupInput(inputId = "pick_california_county",
                                     label = "Choose California County:",
                                     choices = unique(calenviroscreen4$california_county)
-                 ) # end checkboxGroupInput
+                                    ) # end checkboxGroupInput
                ), #end sidebarPanel                 
                mainPanel("Pollution Burden Per Capita",
                          plotOutput("cal_plot2"))
              ) # end sidebarLayout
     ), # end tabpanel 3
+    tabPanel("California Pollution Burden Through Time",
+            sidebarLayout(
+              sidebarPanel(
+                selectInput(inputId = "pick_california_county",
+                            label = h3("Choose California County:"),
+                            choices = unique(complete_df2$california_county),
+                            selected = "Los Angeles"), #end checkboxGroupInput
+             hr(),
+             helpText("By selecting a county from the top-down menu, users can view the changes in the pollution buden score through time, from 2014-2021."),
+              ), # end sidebarPanel 5
+           mainPanel(plotOutput("pollutionburden_plot")) # end mainPanel 5
+            ) # end sidebarLayout 5
+          ), # end tabpanel 5
     ) #end navbar
 ) # end ui
 
