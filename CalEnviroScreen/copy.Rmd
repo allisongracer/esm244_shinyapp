@@ -1,3 +1,17 @@
+---
+title: "appR Copy"
+author: "Taylor Gries"
+date: "2/22/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##### packages #####
+
+
 library(shiny)
 library(tidyverse)
 library(bslib)
@@ -9,9 +23,10 @@ library(sf)
 library(tmap)
 
 
-tmap_mode("view")
 
-# read in data for widget 1
+##### data and wrangling #####
+
+# read in data for tab 2
 suppressWarnings({
 calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictionary_f_2021.xlsx")) %>%
   mutate_if(is.numeric, round, digits = 2) %>%
@@ -20,13 +35,13 @@ calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictiona
   clean_names()
 })
 
-# end data for widget 1
+# end data for tab 2
 
 pollution_map <- calenviroscreen4 %>%
   select(total_population:ces_4_0_percentile_range, haz_waste, pesticides, tox_release, pollution_burden, pollution_burden_score, poverty) %>%
   group_by(california_county)
 
-# map data
+# read in data for tab 3
 
 pollution_map_sf <- pollution_map %>%
   st_as_sf(coords = c('longitude', 'latitude'))
@@ -35,79 +50,33 @@ ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")
   clean_names() %>%
   select(county_name = name, land_area = aland) %>%
   st_as_sf(coords = "geometry")
-  
 
-# end map data
+# end data for tab 3
 
-# read in data for widget 2
+# read in data for tab 4
 
-# end data for widget 2
+# end data for tab 4
 
 # read in data for tab 5
 
-### read in the 2.0 data
-ces_2.0 <- read_csv(here("data", "cal_enviro_2.0.csv")) %>% 
-  clean_names()
-
-### read in the 3.0 data
-ces_3.0 <- read_csv(here("data", "cal_enviro_3.0.csv")) %>% 
-  clean_names()
-
-### read in the 4.0 data
-ces_4.0 <- read_excel(here("data", "calenviroscreen40resultsdatadictionary_F_2021.xlsx")) %>% 
-  clean_names()
-
-### Wrangle the data
-
-### sort by county for each data set, only include pollution percentage
-
-ces_2.0_clean <- ces_2.0 %>% 
-  select(`pollution_burden_pctl`, `california_county`) %>% 
-  group_by(california_county) %>% 
-  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
-  mutate(version = 2)
-
-
-ces_3.0_clean <- ces_3.0 %>% 
-  select(`pollution_burden_pctl`, `california_county`) %>% 
-  group_by(california_county) %>% 
-  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
-  mutate(version = 3)
-
-
-ces_4.0_clean <- ces_4.0 %>% 
-  select(`pollution_burden_pctl`, `california_county`) %>% 
-  group_by(california_county) %>% 
-  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
-  mutate(version = 4)
-
-
-complete_df <- bind_rows(ces_2.0_clean, ces_3.0_clean, ces_4.0_clean)
-
-complete_df2 <- complete_df %>% 
-  rename(year = version) 
-
-complete_df2$year[complete_df2$year == 2] <- 2014
-complete_df2$year[complete_df2$year == 3] <- 2018
-complete_df2$year[complete_df2$year == 4] <- 2021
-
-
 # end data for tab 5
 
-# custom theme
+
+##### theme #####
+
 shiny_theme <- bs_theme(
-  bg = "#4e5d6c",
-  fg = "honeydew",
+  bg = "#FFDAB9",
+  fg = "#800000",
   primary = "white",
   base_font = font_google("Lato"),
   heading_font = font_google("Lato")
 )
 
-# start shiny app
+##### start shiny app UI #####
 
 ui <- fluidPage(theme = shiny_theme,
 
-# homepage
+##### homepage - tab 1 #####
                 
 navbarPage("CalEnviroScreen Interactive Map",
     tabPanel("Project Overview",
@@ -143,6 +112,9 @@ navbarPage("CalEnviroScreen Interactive Map",
               mainPanel(plotOutput("pollution_plot")) # end mainPanel 2
               ) # end sidebarLayout 2
     ), # end tabpanel 2
+
+##### tab 3 #####
+
     tabPanel("California Pollution Map", # start panel 2
              mainPanel( # start main panel 2
                tmapOutput("tmap_ej")
@@ -154,33 +126,26 @@ navbarPage("CalEnviroScreen Interactive Map",
                  checkboxGroupInput(inputId = "pick_california_county",
                                     label = "Choose California County:",
                                     choices = unique(calenviroscreen4$california_county)
-                                    ) # end checkboxGroupInput
+                 ) # end checkboxGroupInput
                ), #end sidebarPanel                 
                mainPanel("Pollution Burden Per Capita",
                          plotOutput("cal_plot2"))
              ) # end sidebarLayout
     ), # end tabpanel 3
-    tabPanel("California Pollution Burden Through Time",
-            sidebarLayout(
-              sidebarPanel(
-                selectInput(inputId = "pick_california_county",
-                            label = h3("Choose California County:"),
-                            choices = unique(complete_df2$california_county),
-                            selected = "Los Angeles"), #end dropdown county input
-             hr(),
-             helpText("By selecting a county from the top-down menu, users can view the changes in the pollution buden score through time, from 2014-2021."),
-              ), # end sidebarPanel 5
-           mainPanel(plotOutput("pollutionburden_plot")) # end mainPanel 5
-            ) # end sidebarLayout 5
-          ), # end tabpanel 5
+
+##### tab 4 #####
+
+
+##### tab 5 #####
+
     ) #end navbar
 ) # end ui
 
-# create server object
+###### End user interface : start server #####
 
 server <- function(input, output) {
 
-# output for wigit 1
+##### tab 2 output #####
   
 # select county
   
@@ -202,9 +167,7 @@ server <- function(input, output) {
       theme(axis.text = element_text(size = 12))
   ) # end renderPlot
   
-  # end wigit 1
-  
-# output for widget 2
+##### tab 3 output #####
 
 output$tmap_ej <- renderTmap({
     tm_shape(pollution_map_sf) +
@@ -212,18 +175,23 @@ output$tmap_ej <- renderTmap({
     tm_basemap("OpenStreetMap")
 })
   
-# output for widget 3
+##### tab 4 output #####
+  
+  
+##### tab 5 output #####
   cal_reactive2 <- reactive({
     calenviroscreen4 %>%
       filter(california_county %in% input$pick_california_county)
   }) # end output$cal_plot 2
   
-# graph for widget 2
+# graph for wigit 2
     output$cal_plot2 <- renderPlot(
     ggplot(data = cal_reactive2(), aes(x = ozone, y = haz_waste)) +
     geom_point(aes(color = california_county))
     ) # end output$cal_plot1
-} # end server
+} 
+
+##### end server #####
 
 
 shinyApp(ui = ui, server = server)
