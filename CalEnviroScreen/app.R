@@ -87,7 +87,7 @@ navbarPage("CalEnviroScreen Interactive Map",
       ), #end mainpanel
     ), # end tabPanel
     
-##### tab 2  #####
+##### tab 2  ######
     
     tabPanel("California Pollution Score by Poverty",
               sidebarLayout(
