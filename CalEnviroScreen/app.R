@@ -29,6 +29,8 @@ pollution_map <- calenviroscreen4 %>%
   select(total_population:ces_4_0_percentile_range, haz_waste, pesticides, tox_release, pollution_burden, pollution_burden_score, poverty) %>%
   group_by(california_county)
 
+pollution_choose <- calenviroscreen4 %>% 
+  select(california_county, pm2_5_pctl)
 # map data
 
 pollution_map_sf <- pollution_map %>%
