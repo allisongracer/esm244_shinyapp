@@ -92,12 +92,13 @@ navbarPage("CalEnviroScreen Interactive Map",
     tabPanel("California Pollution Score by Poverty",
               sidebarLayout(
                 sidebarPanel(
-                  helpText("By selecting a county from the top-down menu, users can view how different variables affect each county"),
                   selectInput(inputId = "pick_california_county",
                                      label = h3("Choose California County:"),
                                      choices = unique(calenviroscreen4$california_county),
                                      selected = "Los Angeles"
                               ), #end selectInput
+                  hr(),
+                  helpText("By selecting a county from the top-down menu, users can view how different variables affect each county"),
                 ), # end sidebarPanel 2
               mainPanel(plotOutput("pollution_plot")) # end mainPanel 2
               ) # end sidebarLayout 2
