@@ -122,7 +122,17 @@ ui <- fluidPage(theme = shiny_theme,
                            ), # end tabpanel 3
                            
                            ##### tab 4 #####
-                           
+                           tabPanel("Burden Analysis",
+                                    sidebarLayout(
+                                      sidebarPanel(sliderInput(inputId = "select_distance",
+                                                               label = h5("Select range:"),
+                                                               min = 0, max = 100,
+                                                               value = c(5, 10))
+                                      ),
+                                      mainPanel("Lionfish Depth Analysis", plotOutput("depth_plot"), 
+                                                "When speaking with Juan Carlos about the data, we learned that not much is known about the vertical distribution of lionfish within a water column. We were curious to see if larger lionfish of reproductive age are able to reside at deeper depths, perhaps making the species more difficult to cull. This exploratory plot shows the depth at which individual lion fish were caught plotted against individual fish weight in grams. ")
+                                    )
+                           ),
                            
                            ##### tab 5 #####
                            
