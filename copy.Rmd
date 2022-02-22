@@ -1,3 +1,10 @@
+---
+title: "Copy"
+author: "Logan Ossentjuk"
+date: "2/22/2022"
+output: html_document
+---
+
 #### packages
 library(shiny)
 library(tidyverse)
@@ -11,9 +18,17 @@ library(tmap)
 library(viridis)
 library
 
+<<<<<<< HEAD
+tmap_mode("view")
+
+# read in data for widget 1
+##### data and wrangling #####
+=======
+
 tmap_mode("view")
 
 # read in data for wigit 1
+>>>>>>> main
 suppressWarnings({
 calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictionary_f_2021.xlsx")) %>%
   mutate_if(is.numeric, round, digits = 2) %>%
@@ -22,13 +37,22 @@ calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictiona
   clean_names()
 })
 
-
+<<<<<<< HEAD
+# end data for widget 1
+=======
 # end data for wigit 1
+>>>>>>> main
 
 pollution_map <- calenviroscreen4 %>%
   select(total_population:ces_4_0_percentile_range, haz_waste, pesticides, tox_release, pollution_burden, pollution_burden_score, poverty) %>%
   group_by(california_county)
 
+<<<<<<< HEAD
+pollution_choose <- calenviroscreen4 %>% 
+  select(california_county, pm2_5_pctl)
+
+=======
+>>>>>>> main
 # map data
 
 pollution_map_sf <- pollution_map %>%
@@ -61,7 +85,11 @@ ui <- fluidPage(theme = shiny_theme,
 
 # homepage
                 
+<<<<<<< HEAD
+navbarPage("CalEnviroScreen",
+=======
 navbarPage("CalEnviroScreen Interactive Map",
+>>>>>>> main
     tabPanel("Project Overview",
              titlePanel(h2("Environmental Justice Screening and Mapping Tool", align = "center")),
       mainPanel(
@@ -81,18 +109,26 @@ navbarPage("CalEnviroScreen Interactive Map",
       ), #end mainpanel
     ), # end tabPanel
     
+<<<<<<< HEAD
+    # tab 1
+=======
 ##### tab 2  ######
-
+>>>>>>> main
+    
     tabPanel("California Pollution Score by Poverty",
               sidebarLayout(
                 sidebarPanel(
                   selectInput(inputId = "pick_california_county",
                                      label = h3("Choose California County:"),
                                      choices = unique(calenviroscreen4$california_county),
-
+<<<<<<< HEAD
+                                     selected = "Los Angeles"), #end checkboxGroupInput
+                  hr(),
+                  helpText("By selecting a county from the top-down menu, users can view the differences in the pollution burden score."),
+=======
                                      selected = "Los Angeles"
                               ), #end selectInput
-
+>>>>>>> main
                 ), # end sidebarPanel 2
               mainPanel(plotOutput("pollution_plot")) # end mainPanel 2
               ) # end sidebarLayout 2
@@ -134,17 +170,44 @@ server <- function(input, output) {
   
   output$pollution_plot <- renderPlot(
     
+<<<<<<< HEAD
+    ggplot(data = cal_reactive1(), aes(x = poverty, y = pollution_burden)) +
+      geom_col(fill = "darkred", color = "black", stat = "identity", width = 0.5) +
+      theme_minimal(base_size = 12) +
+      labs(x = "Poverty", 
+           y = "Pollution Burden",
+           title = "Pollution Burden by Poverty") +
+=======
     ggplot(data = cal_reactive1(), aes(x = poverty, y = pollution_burden_score)) +
       geom_col(fill = "darkred", color = "black", stat = "identity", width = 0.5) +
       theme_minimal(base_size = 12) +
       labs(x = "Low Income Percentiles", 
            y = "Pollution Burden Score",
            title = "Pollution Burden Score vs Poverty Percentiles") +
+>>>>>>> main
       theme(axis.text = element_text(size = 12))
   ) # end renderPlot
   
   # end wigit 1
   
+<<<<<<< HEAD
+# output for wigit 2
+
+output$tmap_ej <- renderTmap({
+    tm_shape(ca_county_map) +
+    tm_polygons("land_area", legend.show = FALSE) +
+    tm_shape(pollution_map_sf) +
+    tm_bubbles("pollution_burden_score")
+})
+
+  pollution_variables <- reactive({
+    pollution_map %>%
+      filter(california_county %in% input$pick_california_county)
+  }) # end output$cal_plot 1
+  
+  
+# output for wigit 3
+=======
 # output for widget 2
 
 output$tmap_ej <- renderTmap({
@@ -154,13 +217,17 @@ output$tmap_ej <- renderTmap({
 })
   
 # output for widget 3
-
+>>>>>>> main
   cal_reactive2 <- reactive({
     calenviroscreen4 %>%
       filter(california_county %in% input$pick_california_county)
   }) # end output$cal_plot 2
   
+<<<<<<< HEAD
+# graph for widgit 2
+=======
 # graph for widget 2
+>>>>>>> main
     output$cal_plot2 <- renderPlot(
     ggplot(data = cal_reactive2(), aes(x = ozone, y = haz_waste)) +
     geom_point(aes(color = california_county))
