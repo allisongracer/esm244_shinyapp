@@ -140,7 +140,7 @@ server <- function(input, output) {
   
   # end wigit 1
   
-# output for wigit 2
+# output for widget 2
 
 output$tmap_ej <- renderTmap({
     tm_shape(pollution_map_sf) +
@@ -148,13 +148,13 @@ output$tmap_ej <- renderTmap({
     tm_basemap("OpenStreetMap")
 })
   
-# output for wigit 3
+# output for widget 3
   cal_reactive2 <- reactive({
     calenviroscreen4 %>%
       filter(california_county %in% input$pick_california_county)
   }) # end output$cal_plot 2
   
-# graph for widgit 2
+# graph for widget 2
     output$cal_plot2 <- renderPlot(
     ggplot(data = cal_reactive2(), aes(x = ozone, y = haz_waste)) +
     geom_point(aes(color = california_county))
