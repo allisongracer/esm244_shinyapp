@@ -29,7 +29,12 @@ suppressWarnings({
 
 pollution_map <- calenviroscreen4 %>%
   select(total_population:ces_4_0_percentile_range, haz_waste, pesticides, tox_release, pollution_burden, pollution_burden_score, poverty) %>%
-  group_by(california_county)
+  group_by(california_county) 
+
+pollution_choose <- calenviroscreen4 %>% 
+  select(california_county, pm2_5_pctl, diesel_pm_pctl, lead_pctl, pesticides_pctl, tox_release_pctl,haz_waste_pctl) %>%
+  group_by(california_county) %>% 
+  summarize(mean_result= mean(mean_result))
 
 # read in data for tab 3
 
@@ -95,7 +100,7 @@ ui <- fluidPage(theme = shiny_theme,
                                                     choices = unique(calenviroscreen4$california_county),
                                                     selected = "Los Angeles"), #end checkboxGroupInput
                                         hr(),
-                                        helpText("By selecting a county from the top-down menu, users can view the differences in the pollution buden score."),
+                                        helpText("By selecting a county from the top-down menu, users can view the differences in the pollution burden score."),
                                       ), # end sidebarPanel 2
                                       mainPanel(plotOutput("pollution_plot")) # end mainPanel 2
                                     ) # end sidebarLayout 2
@@ -104,9 +109,19 @@ ui <- fluidPage(theme = shiny_theme,
                            ##### tab 3 #####
                            
                            tabPanel("California Pollution Map", # start panel 2
+                                    sidebarLayout(
+                                      sidebarPanel(
+                                        "Choose Pollutant",
+                                        br(),
+                                        hr(),
+                                        selectInput(inputId = "choose_pollutant",
+                                                    label = "Choose Pollutant",
+                                                    choices = unique(pollution_choose),
+                                      ) #end sidebarPanel
                                     mainPanel( # start main panel 2
                                       tmapOutput("tmap_ej")
                                     ) # end main panel 2
+                                    ) #end sidebarLayout
                            ), # end tabpanel 2
                            tabPanel("Pollution Burden Per Capita",
                                     sidebarLayout(
@@ -122,17 +137,32 @@ ui <- fluidPage(theme = shiny_theme,
                            ), # end tabpanel 3
                            
                            ##### tab 4 #####
-                           tabPanel("Burden Analysis",
-                                    sidebarLayout(
-                                      sidebarPanel(sliderInput(inputId = "select_distance",
-                                                               label = h5("Select range:"),
-                                                               min = 0, max = 100,
-                                                               value = c(5, 10))
-                                      ),
-                                      mainPanel("Lionfish Depth Analysis", plotOutput("depth_plot"), 
-                                                "When speaking with Juan Carlos about the data, we learned that not much is known about the vertical distribution of lionfish within a water column. We were curious to see if larger lionfish of reproductive age are able to reside at deeper depths, perhaps making the species more difficult to cull. This exploratory plot shows the depth at which individual lion fish were caught plotted against individual fish weight in grams. ")
-                                    )
-                           ),
+                #            sidebarLayout(
+                #              sidebarPanel(
+                #                "What do you want to represent?",
+                #                hr(),
+                #                selectInput(inputId = "pick_pollutant_map",
+                #                            label = "Select pollutant",
+                #                            choices = unique(df$gm_chemical_name),
+                #                            selected = "50 Free"
+                #                ), # End selectInput
+                #                
+                #                sliderInput(inputId = "pick_year_map",
+                #                            label = "Time range",
+                #                            min = min(mapdata$year),
+                #                            max = max(mapdata$year),
+                #                            value = min(mapdata$year),
+                #                            animate=T
+                #                ) # End sliderInput
+                #                
+                #              ), # End of sidebarPanel
+                #              mainPanel(
+                #                column(
+                #                  "California Counties Map",
+                #                  plotOutput(outputId = "gw_map", width = "150%"), width = 8)
+                #              ) # End of mainPanel
+                #            ) # End of sidebarLayout
+                # ) # End of tabPanel map
                            
                            ##### tab 5 #####
                            
