@@ -39,9 +39,60 @@ ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")
 
 # end map data
 
-# read in data for wigit 2
+# read in data for widget 2
 
-# end data for wigit 2
+# end data for widget 2
+
+# read in data for tab 5
+
+### read in the 2.0 data
+ces_2.0 <- read_csv(here("data", "cal_enviro_2.0.csv")) %>% 
+  clean_names()
+
+### read in the 3.0 data
+ces_3.0 <- read_csv(here("data", "cal_enviro_3.0.csv")) %>% 
+  clean_names()
+
+### read in the 4.0 data
+ces_4.0 <- read_excel(here("data", "calenviroscreen40resultsdatadictionary_F_2021.xlsx")) %>% 
+  clean_names()
+
+### Wrangle the data
+
+### sort by county for each data set, only include pollution percentage
+
+ces_2.0_clean <- ces_2.0 %>% 
+  select(`pollution_burden_pctl`, `california_county`) %>% 
+  group_by(california_county) %>% 
+  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
+  mutate(version = 2)
+
+
+ces_3.0_clean <- ces_3.0 %>% 
+  select(`pollution_burden_pctl`, `california_county`) %>% 
+  group_by(california_county) %>% 
+  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
+  mutate(version = 3)
+
+
+ces_4.0_clean <- ces_4.0 %>% 
+  select(`pollution_burden_pctl`, `california_county`) %>% 
+  group_by(california_county) %>% 
+  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
+  mutate(version = 4)
+
+
+complete_df <- bind_rows(ces_2.0_clean, ces_3.0_clean, ces_4.0_clean)
+
+complete_df2 <- complete_df %>% 
+  rename(year = version) 
+
+complete_df2$year[complete_df2$year == 2] <- 2014
+complete_df2$year[complete_df2$year == 3] <- 2018
+complete_df2$year[complete_df2$year == 4] <- 2021
+
+
+# end data for tab 5
 
 # custom theme
 shiny_theme <- bs_theme(
