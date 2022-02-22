@@ -13,7 +13,7 @@ library
 
 tmap_mode("view")
 
-# read in data for widgit 1
+# read in data for widget 1
 ##### data and wrangling #####
 suppressWarnings({
 calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictionary_f_2021.xlsx")) %>%
@@ -23,11 +23,14 @@ calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictiona
   clean_names()
 })
 
-# end data for wigit 1
+# end data for widget 1
 
 pollution_map <- calenviroscreen4 %>%
   select(total_population:ces_4_0_percentile_range, haz_waste, pesticides, tox_release, pollution_burden, pollution_burden_score, poverty) %>%
   group_by(california_county)
+
+pollution_choose <- calenviroscreen4 %>% 
+  select(california_county, pm2_5_pctl)
 
 # map data
 
