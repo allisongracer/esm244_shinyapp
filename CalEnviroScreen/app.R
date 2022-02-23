@@ -43,6 +43,40 @@ ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")
 
 # end data for widget 2
 
+### Wrangle data for Tab 3 ###
+
+ces_2.0_clean2 <- ces_2.0 %>% 
+  select(`pollution_burden_pctl`, `california_county`, `tox_release_pctl`, `haz_waste_pctl`, `pm2_5_pctl`, `groundwater_threats_pctl`, `pesticides_pctl`) %>% 
+  group_by(california_county) %>% 
+  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
+  mutate(year = 2014)
+
+
+ces_3.0_clean2 <- ces_3.0 %>% 
+  select(`pollution_burden_pctl`, `california_county`, `tox_release_pctl`, `haz_waste_pctl`, `pm2_5_pctl`, `groundwater_threats_pctl`, `pesticides_pctl`) %>%
+  group_by(california_county) %>% 
+  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
+  mutate(year = 2018)
+
+
+ces_4.0_clean2 <- ces_4.0 %>% 
+  select(`pollution_burden_pctl`, `california_county`, `tox_release_pctl`, `haz_waste_pctl`, `pm2_5_pctl`, `groundwater_threats_pctl`, `pesticides_pctl`) %>%
+  group_by(california_county) %>% 
+  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
+  mutate(year = 2021)
+
+
+almost_complete_map <- bind_rows(ces_2.0_clean2, ces_3.0_clean2, ces_4.0_clean2)
+
+complete_map <- almost_complete_map %>% 
+  pivot_longer(pollution_burden_pctl:pesticides_pctl) %>% 
+  mutate(name = case_when(name %in% c("pollution_burden_pctl") ~ "Pollution Burden %",
+                          name %in% c("tox_release_pctl") ~ "Toxic Release %",
+                          name %in% c("haz_waste_pctl") ~ " Hazardous Waste %",
+                          name %in% c("pm2_5_pctl") ~ "PM 2.5 %",
+                          name %in% c("groundwater_threats_pctl") ~ "Groundwater Threats %",
+                          name %in% c("pesticides_pctl") ~ "Pesticides %"))
+
 # read in data for tab 5
 
 ### read in the 2.0 data
