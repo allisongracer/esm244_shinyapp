@@ -37,7 +37,7 @@ ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")
   clean_names() %>%
   select(california_county = name, land_area = aland)
 
-map_data <- left_join(ca_county_map, complete_df2, "california_county")
+map_data <- left_join(ca_county_map, complete_map, "california_county")
 
 # end map data
 
@@ -77,7 +77,7 @@ complete_map <- almost_complete_map %>%
   pivot_longer(pollution_burden_pctl:pesticides_pctl) %>% 
   mutate(name = case_when(name %in% c("pollution_burden_pctl") ~ "Pollution Burden %",
                           name %in% c("tox_release_pctl") ~ "Toxic Release %",
-                          name %in% c("haz_waste_pctl") ~ " Hazardous Waste %",
+                          name %in% c("haz_waste_pctl") ~ "Hazardous Waste %",
                           name %in% c("pm2_5_pctl") ~ "PM 2.5 %",
                           name %in% c("groundwater_threats_pctl") ~ "Groundwater Threats %",
                           name %in% c("pesticides_pctl") ~ "Pesticides %"))
@@ -188,9 +188,26 @@ navbarPage("CalEnviroScreen Interactive Map",
               ) # end sidebarLayout 2
     ), # end tabpanel 2
     tabPanel("California Pollution Map", # start panel 2
+             sidebarLayout(
+               sidebarPanel(
+                 "Choose Variables",
+                 hr(),
+                 selectInput(inputId = "pick_name",
+                             label = "Select Variable",
+                             choices = unique(map_data$name),
+                             selected = "Pollution Burden %"
+                             ), # end selectInput
+                 sliderInput(inputId = "pick_year",
+                             label = "Choose timeframe",
+                             min = min(map_data$year),
+                             max = max(map_data$year),
+                             value = min(map_data$year),
+                 ), # end sliderInput
+               ), # end sidebarPanel
              mainPanel( # start main panel 2
-               tmapOutput("tmap_ej")
+               tmapOutput(outputId = "pollution_map")
                ) # end main panel 2
+             ) # end sidebarLayout
              ), # end tabpanel 2
 
 ##### tab 3 ######
@@ -303,16 +320,16 @@ output$tmap_ej <- renderTmap({
     
     ## Contaminant Map 
     map_reactive <- reactive({
-      DATA FRAME %>% 
-        filter(CHEM_NAME_COLUMN %in% input$INPUTID NAME) %>% 
-        filter(year == input$year[1])
+      map_data %>% 
+        filter(name %in% input$pick_value) %>% 
+        filter(year == input$pick_year[3])
     }) # end map_reactive
     
-    output$pollution_map_ <- renderTmap({
+    output$pollution_map <- renderTmap({
       tm_shape(shp = map_reactive()) +
-        tm_borders(col = 'gray') +
-        tm_fill(col = 'WHAT WE SUMMARIZED BY',
-                title = "Mean Contaminant Concentration Per Capita",
+        tm_polygons(col = 'gray') +
+        tm_fill(col = 'value',
+                title = "Mean Contaminant Concentration Per County",
                 style = 'cont',
                 # popup.vars = c("Population in Poverty (2019)"="povall_2019","Percent of Population in Poverty (2019)"="pctpovall_2019"),
                 popup.format = list()) 
