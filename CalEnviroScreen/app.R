@@ -1,3 +1,4 @@
+#### packages
 library(shiny)
 library(tidyverse)
 library(bslib)
@@ -7,7 +8,6 @@ library(readxl)
 library(janitor)
 library(sf)
 library(tmap)
-
 
 tmap_mode("view")
 
@@ -26,6 +26,8 @@ pollution_map <- calenviroscreen4 %>%
   select(total_population:ces_4_0_percentile_range, haz_waste, pesticides, tox_release, pollution_burden, pollution_burden_score, poverty) %>%
   group_by(california_county)
 
+pollution_choose <- calenviroscreen4 %>% 
+  select(california_county, pm2_5_pctl)
 # map data
 
 pollution_map_sf <- pollution_map %>%
@@ -33,15 +35,18 @@ pollution_map_sf <- pollution_map %>%
 
 ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")) %>%
   clean_names() %>%
-  select(county_name = name, land_area = aland) %>%
-  st_as_sf(coords = "geometry")
-  
+  select(california_county = name, land_area = aland)
+
+map_data <- left_join(ca_county_map, complete_df2, "california_county")
 
 # end map data
 
 # read in data for widget 2
 
 # end data for widget 2
+
+##### tab 3 #######
+
 
 ### Wrangle data for Tab 3 ###
 
@@ -167,15 +172,17 @@ navbarPage("CalEnviroScreen Interactive Map",
     ), # end tabPanel
     
 ##### tab 2  ######
-    
+
     tabPanel("California Pollution Score by Poverty",
               sidebarLayout(
                 sidebarPanel(
                   selectInput(inputId = "pick_california_county",
                                      label = h3("Choose California County:"),
                                      choices = unique(calenviroscreen4$california_county),
+
                                      selected = "Los Angeles"
                               ), #end selectInput
+
                 ), # end sidebarPanel 2
               mainPanel(plotOutput("pollution_plot")) # end mainPanel 2
               ) # end sidebarLayout 2
@@ -185,6 +192,9 @@ navbarPage("CalEnviroScreen Interactive Map",
                tmapOutput("tmap_ej")
                ) # end main panel 2
              ), # end tabpanel 2
+
+##### tab 3 ######
+
     tabPanel("Pollution Burden Per Capita",
              sidebarLayout(
                sidebarPanel(
@@ -197,6 +207,11 @@ navbarPage("CalEnviroScreen Interactive Map",
                          plotOutput("cal_plot2"))
              ) # end sidebarLayout
     ), # end tabpanel 3
+
+
+##### tab 4 ######
+
+##### tab 5 ######
     tabPanel("California Pollution Burden Through Time",
             sidebarLayout(
               sidebarPanel(
@@ -251,6 +266,7 @@ output$tmap_ej <- renderTmap({
 })
   
 # output for widget 3
+
   cal_reactive2 <- reactive({
     calenviroscreen4 %>%
       filter(california_county %in% input$pick_california_county)
@@ -262,7 +278,47 @@ output$tmap_ej <- renderTmap({
     geom_point(aes(color = california_county))
     ) # end output$cal_plot1
     
+##### tab 4 output #####
     
+    
+    # ## Contaminant Map 
+    # map_reactive_con <- reactive({
+    #   combined_sf_shiny %>% 
+    #     filter(gm_chemical_name %in% input$pick_pollutant_map) %>% 
+    #     filter(year == input$pick_year_map[1])
+    # }) # end map_reactive
+    # 
+    # output$gw_map_con <- renderTmap({
+    #   tm_shape(shp = map_reactive_con()) +
+    #     tm_borders(col = 'gray') +
+    #     tm_fill(col = 'mean_gm_result',
+    #             title = "Mean Contaminant Concentration",
+    #             style = 'cont',
+    #             popup.vars = c("Population in Poverty (2019)"="povall_2019","Percent of Population in Poverty (2019)"="pctpovall_2019"),
+    #             popup.format = list()) 
+    # }
+    # 
+    # ) # end output$gw_map_con
+    
+    
+    ## Contaminant Map 
+    map_reactive <- reactive({
+      DATA FRAME %>% 
+        filter(CHEM_NAME_COLUMN %in% input$INPUTID NAME) %>% 
+        filter(year == input$year[1])
+    }) # end map_reactive
+    
+    output$pollution_map_ <- renderTmap({
+      tm_shape(shp = map_reactive()) +
+        tm_borders(col = 'gray') +
+        tm_fill(col = 'WHAT WE SUMMARIZED BY',
+                title = "Mean Contaminant Concentration Per Capita",
+                style = 'cont',
+                # popup.vars = c("Population in Poverty (2019)"="povall_2019","Percent of Population in Poverty (2019)"="pctpovall_2019"),
+                popup.format = list()) 
+    }
+    
+    )
 ##### tab 5 output #####
     
 # select county drop down
