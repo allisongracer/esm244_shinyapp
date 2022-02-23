@@ -1,0 +1,124 @@
+---
+title: "Data Wrangling"
+author: "Allison Gracer"
+date: "2/17/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+library(janitor)
+library(readxl)
+```
+
+```{r}
+# read in the 2.0 data
+ces_2.0 <- read_csv(here("data", "cal_enviro_2.0.csv")) %>% 
+  clean_names()
+
+# read in the 3.0 data
+ces_3.0 <- read_csv(here("data", "cal_enviro_3.0.csv")) %>% 
+  clean_names()
+
+# read in the 4.0 data
+ces_4.0 <- read_excel(here("data", "calenviroscreen40resultsdatadictionary_F_2021.xlsx")) %>% 
+  clean_names()
+```
+
+
+```{r}
+#Wrangle the data
+
+# sort by county for each data set, only include pollution percentage
+
+ces_2.0_clean <- ces_2.0 %>% 
+  select(`pollution_burden_pctl`, `california_county`) %>% 
+  group_by(california_county) %>% 
+  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
+  mutate(version = 2)
+
+  
+
+ces_3.0_clean <- ces_3.0 %>% 
+  select(`pollution_burden_pctl`, `california_county`) %>% 
+  group_by(california_county) %>% 
+  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
+  mutate(version = 3)
+  
+
+ces_4.0_clean <- ces_4.0 %>% 
+  select(`pollution_burden_pctl`, `california_county`) %>% 
+  group_by(california_county) %>% 
+  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
+  mutate(version = 4)
+
+
+
+complete_df <- bind_rows(ces_2.0_clean, ces_3.0_clean, ces_4.0_clean)
+
+complete_df2 <- complete_df %>% 
+  rename(year = version) 
+
+complete_df2$year[complete_df2$year == 2] <- 2014
+complete_df2$year[complete_df2$year == 3] <- 2017
+complete_df2$year[complete_df2$year == 4] <- 2021
+  
+  # 2 = 2014
+  # 3 = 2017
+  # 4 = 2021
+  
+
+
+
+
+# complete_df2 <- complete_df %>% 
+  # group_by(california_county)
+
+
+  #rename(pollution_burden_pctl2.0 = pollution_burden_pctl)
+ # to add new column I did ces_4.0_clean$ces_version <- c(4)
+
+```
+
+
+```{r}
+sidebarLayout(
+    sidebarPanel(
+      helpText("Visualize Pollution Burden Change by County Through Time"),
+      
+      selectInput("var", 
+                  label = "Choose a county to display",
+                  choices = unique(complete_df2$california_county),
+                  selected = "Los Angeles County"),
+      
+    ),
+    
+    mainPanel(
+      textOutput("selected_var")
+    )
+  )
+)
+```
+
+
+```{r}
+library(shiny)
+library(dplyr)
+library(ggplot2)
+
+server <- function(input, output, session) {
+  
+  output$plot <- renderPlot({
+    pb <- complete_df
+    
+    
+    
+    #Plot 
+    g <- ggplot(pb, aes( x = version, y = pollution_burden_pctl)) + 
+      geom_bar()
+  })
+}
+```
+

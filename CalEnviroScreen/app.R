@@ -85,7 +85,8 @@ ces_4.0_clean <- ces_4.0 %>%
 complete_df <- bind_rows(ces_2.0_clean, ces_3.0_clean, ces_4.0_clean)
 
 complete_df2 <- complete_df %>% 
-  rename(year = version) 
+  rename(year = version)
+  
 
 complete_df2$year[complete_df2$year == 2] <- 2014
 complete_df2$year[complete_df2$year == 3] <- 2018
@@ -163,16 +164,17 @@ navbarPage("CalEnviroScreen Interactive Map",
     tabPanel("California Pollution Burden Through Time",
             sidebarLayout(
               sidebarPanel(
-                selectInput(inputId = "pick_california_county",
+                selectInput(inputId = "pick_county_tab5",
                             label = h3("Choose California County:"),
                             choices = unique(complete_df2$california_county),
                             selected = "Los Angeles"), #end dropdown county input
              hr(),
-             helpText("By selecting a county from the top-down menu, users can view the changes in the pollution buden score through time, from 2014-2021."),
+             helpText("By selecting a county from the top-down menu, users can view the mean change in pollution burden percentages through time, from 2014-2021."),
               ), # end sidebarPanel 5
            mainPanel(plotOutput("pollutionburden_plot")) # end mainPanel 5
             ) # end sidebarLayout 5
           ), # end tabpanel 5
+
     ) #end navbar
 ) # end ui
 
@@ -223,6 +225,32 @@ output$tmap_ej <- renderTmap({
     ggplot(data = cal_reactive2(), aes(x = ozone, y = haz_waste)) +
     geom_point(aes(color = california_county))
     ) # end output$cal_plot1
+    
+    
+##### tab 5 output #####
+    
+# select county drop down
+    cal_reactive5 <- reactive({
+      complete_df2 %>%
+        filter(california_county %in% input$pick_county_tab5)
+    }) # end output$cal_reactive5
+  
+# graph for widget 5
+    output$pollutionburden_plot <- renderPlot(
+    ggplot(data = cal_reactive5(), aes(x = year, y = pollution_burden_pctl)) +
+      geom_col(fill = "darkolivegreen4",
+               color = "darkolivegreen",
+               width = .5) +
+      geom_text(aes(label = pollution_burden_pctl), # label exact co2 values on graph
+                vjust = 1.3, # adjust label placement and size
+                hjust = 0.5,
+                size = 2.3,
+                color = "white") +
+      scale_x_continuous(breaks = c(2014,2018,2021)) +
+      labs(x = "\nYear\n", 
+           y = "\nPollution Burden %\n") +
+      theme(axis.text = element_text(size = 12)) 
+    ) # end renderPlot
 } # end server
 
 
