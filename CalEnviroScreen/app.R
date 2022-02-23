@@ -45,6 +45,40 @@ map_data <- left_join(ca_county_map, complete_df2, "california_county")
 
 # end data for widget 2
 
+### Wrangle data for Tab 3 ###
+
+ces_2.0_clean2 <- ces_2.0 %>% 
+  select(`pollution_burden_pctl`, `california_county`, `tox_release_pctl`, `haz_waste_pctl`, `pm2_5_pctl`, `groundwater_threats_pctl`, `pesticides_pctl`) %>% 
+  group_by(california_county) %>% 
+  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
+  mutate(year = 2014)
+
+
+ces_3.0_clean2 <- ces_3.0 %>% 
+  select(`pollution_burden_pctl`, `california_county`, `tox_release_pctl`, `haz_waste_pctl`, `pm2_5_pctl`, `groundwater_threats_pctl`, `pesticides_pctl`) %>%
+  group_by(california_county) %>% 
+  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
+  mutate(year = 2018)
+
+
+ces_4.0_clean2 <- ces_4.0 %>% 
+  select(`pollution_burden_pctl`, `california_county`, `tox_release_pctl`, `haz_waste_pctl`, `pm2_5_pctl`, `groundwater_threats_pctl`, `pesticides_pctl`) %>%
+  group_by(california_county) %>% 
+  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
+  mutate(year = 2021)
+
+
+almost_complete_map <- bind_rows(ces_2.0_clean2, ces_3.0_clean2, ces_4.0_clean2)
+
+complete_map <- almost_complete_map %>% 
+  pivot_longer(pollution_burden_pctl:pesticides_pctl) %>% 
+  mutate(name = case_when(name %in% c("pollution_burden_pctl") ~ "Pollution Burden %",
+                          name %in% c("tox_release_pctl") ~ "Toxic Release %",
+                          name %in% c("haz_waste_pctl") ~ " Hazardous Waste %",
+                          name %in% c("pm2_5_pctl") ~ "PM 2.5 %",
+                          name %in% c("groundwater_threats_pctl") ~ "Groundwater Threats %",
+                          name %in% c("pesticides_pctl") ~ "Pesticides %"))
+
 # read in data for tab 5
 
 ### read in the 2.0 data
@@ -56,8 +90,10 @@ ces_3.0 <- read_csv(here("data", "cal_enviro_3.0.csv")) %>%
   clean_names()
 
 ### read in the 4.0 data
+suppressWarnings({
 ces_4.0 <- read_excel(here("data", "calenviroscreen40resultsdatadictionary_F_2021.xlsx")) %>% 
   clean_names()
+})
 
 ### Wrangle the data
 
@@ -87,7 +123,7 @@ ces_4.0_clean <- ces_4.0 %>%
 complete_df <- bind_rows(ces_2.0_clean, ces_3.0_clean, ces_4.0_clean)
 
 complete_df2 <- complete_df %>% 
-  rename(year = version)
+  rename(year = version) 
   
 
 complete_df2$year[complete_df2$year == 2] <- 2014
@@ -294,15 +330,16 @@ output$tmap_ej <- renderTmap({
       geom_col(fill = "darkolivegreen4",
                color = "darkolivegreen",
                width = .5) +
-      geom_text(aes(label = pollution_burden_pctl), # label exact co2 values on graph
+      geom_text(aes(label = round(pollution_burden_pctl, 1)), # label exact co2 values on graph
                 vjust = 1.3, # adjust label placement and size
                 hjust = 0.5,
-                size = 2.3,
+                size = 4,
                 color = "white") +
       scale_x_continuous(breaks = c(2014,2018,2021)) +
       labs(x = "\nYear\n", 
            y = "\nPollution Burden %\n") +
-      theme(axis.text = element_text(size = 12)) 
+      theme(axis.text = element_text(size = 12)) +
+      theme_minimal()
     ) # end renderPlot
 } # end server
 
