@@ -45,6 +45,9 @@ map_data <- left_join(ca_county_map, complete_df2, "california_county")
 
 # end data for widget 2
 
+##### tab 3 #######
+
+
 ### Wrangle data for Tab 3 ###
 
 ces_2.0_clean2 <- ces_2.0 %>% 
