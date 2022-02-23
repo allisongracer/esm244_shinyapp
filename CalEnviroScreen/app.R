@@ -54,8 +54,10 @@ ces_3.0 <- read_csv(here("data", "cal_enviro_3.0.csv")) %>%
   clean_names()
 
 ### read in the 4.0 data
+suppressWarnings({
 ces_4.0 <- read_excel(here("data", "calenviroscreen40resultsdatadictionary_F_2021.xlsx")) %>% 
   clean_names()
+})
 
 ### Wrangle the data
 
@@ -85,7 +87,7 @@ ces_4.0_clean <- ces_4.0 %>%
 complete_df <- bind_rows(ces_2.0_clean, ces_3.0_clean, ces_4.0_clean)
 
 complete_df2 <- complete_df %>% 
-  rename(year = version)
+  rename(year = version) 
   
 
 complete_df2$year[complete_df2$year == 2] <- 2014
@@ -241,15 +243,16 @@ output$tmap_ej <- renderTmap({
       geom_col(fill = "darkolivegreen4",
                color = "darkolivegreen",
                width = .5) +
-      geom_text(aes(label = pollution_burden_pctl), # label exact co2 values on graph
+      geom_text(aes(label = round(pollution_burden_pctl, 1)), # label exact co2 values on graph
                 vjust = 1.3, # adjust label placement and size
                 hjust = 0.5,
-                size = 2.3,
+                size = 4,
                 color = "white") +
       scale_x_continuous(breaks = c(2014,2018,2021)) +
       labs(x = "\nYear\n", 
            y = "\nPollution Burden %\n") +
-      theme(axis.text = element_text(size = 12)) 
+      theme(axis.text = element_text(size = 12)) +
+      theme_minimal()
     ) # end renderPlot
 } # end server
 
