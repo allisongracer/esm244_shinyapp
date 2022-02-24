@@ -322,7 +322,7 @@ output$tmap_ej <- renderTmap({
     map_reactive <- reactive({
       map_data %>% 
         filter(name %in% input$pick_value) %>% 
-        filter(year == input$pick_year[3])
+        filter(year == input$pick_year)
     }) # end map_reactive
     
     output$pollution_map <- renderTmap({
