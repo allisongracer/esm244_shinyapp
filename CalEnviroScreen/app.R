@@ -47,6 +47,19 @@ ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")
 
 ##### tab 3 #######
 
+### read in the 2.0 data
+ces_2.0 <- read_csv(here("data", "cal_enviro_2.0.csv")) %>% 
+  clean_names()
+
+### read in the 3.0 data
+ces_3.0 <- read_csv(here("data", "cal_enviro_3.0.csv")) %>% 
+  clean_names()
+
+### read in the 4.0 data
+suppressWarnings({
+  ces_4.0 <- read_excel(here("data", "calenviroscreen40resultsdatadictionary_F_2021.xlsx")) %>% 
+    clean_names()
+})
 
 ### Wrangle data for Tab 3 ###
 
