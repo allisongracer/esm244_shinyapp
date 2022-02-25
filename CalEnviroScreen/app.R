@@ -33,11 +33,11 @@ pollution_choose <- calenviroscreen4 %>%
 pollution_map_sf <- pollution_map %>%
   st_as_sf(coords = c('longitude', 'latitude'))
 
+
 ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")) %>%
   clean_names() %>%
-  select(california_county = name, land_area = aland)
+  select(california_county = name)
 
-map_data <- left_join(ca_county_map, complete_map, "california_county")
 
 # end map data
 
@@ -81,6 +81,8 @@ complete_map <- almost_complete_map %>%
                           name %in% c("pm2_5_pctl") ~ "PM 2.5 %",
                           name %in% c("groundwater_threats_pctl") ~ "Groundwater Threats %",
                           name %in% c("pesticides_pctl") ~ "Pesticides %"))
+
+map_data <- left_join(ca_county_map, complete_map, "california_county")
 
 # read in data for tab 5
 
@@ -298,31 +300,14 @@ output$tmap_ej <- renderTmap({
 ##### tab 4 output #####
     
     
-    # ## Contaminant Map 
-    # map_reactive_con <- reactive({
-    #   combined_sf_shiny %>% 
-    #     filter(gm_chemical_name %in% input$pick_pollutant_map) %>% 
-    #     filter(year == input$pick_year_map[1])
-    # }) # end map_reactive
-    # 
-    # output$gw_map_con <- renderTmap({
-    #   tm_shape(shp = map_reactive_con()) +
-    #     tm_borders(col = 'gray') +
-    #     tm_fill(col = 'mean_gm_result',
-    #             title = "Mean Contaminant Concentration",
-    #             style = 'cont',
-    #             popup.vars = c("Population in Poverty (2019)"="povall_2019","Percent of Population in Poverty (2019)"="pctpovall_2019"),
-    #             popup.format = list()) 
-    # }
-    # 
-    # ) # end output$gw_map_con
-    
-    
     ## Contaminant Map 
     map_reactive <- reactive({
       map_data %>% 
         filter(name %in% input$pick_value) %>% 
-        filter(year == input$pick_year[3])
+        message('input$pick_value = ', input$pick_value) %>%
+        filter(year %in% input$pick_year) %>%
+        message('input$pick_year = ', input$pick_year) %>%
+        return(map_data)
     }) # end map_reactive
     
     output$pollution_map <- renderTmap({
@@ -333,9 +318,7 @@ output$tmap_ej <- renderTmap({
                 style = 'cont',
                 # popup.vars = c("Population in Poverty (2019)"="povall_2019","Percent of Population in Poverty (2019)"="pctpovall_2019"),
                 popup.format = list()) 
-    }
-    
-    )
+    })
 ##### tab 5 output #####
     
 # select county drop down
