@@ -11,42 +11,6 @@ library(tmap)
 
 tmap_mode("view")
 
-# read in data for widget 1
-suppressWarnings({
-calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictionary_f_2021.xlsx")) %>%
-  mutate_if(is.numeric, round, digits = 2) %>%
-  na_if(0.000) %>%
-  drop_na() %>%
-  clean_names()
-})
-
-# end data for widget 1
-
-pollution_map <- calenviroscreen4 %>%
-  select(total_population:ces_4_0_percentile_range, haz_waste, pesticides, tox_release, pollution_burden, pollution_burden_score, poverty) %>%
-  group_by(california_county)
-
-pollution_choose <- calenviroscreen4 %>% 
-  select(california_county, pm2_5_pctl)
-# map data
-
-pollution_map_sf <- pollution_map %>%
-  st_as_sf(coords = c('longitude', 'latitude'))
-
-
-ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")) %>%
-  clean_names() %>%
-  select(california_county = name)
-
-
-# end map data
-
-# read in data for widget 2
-
-# end data for widget 2
-
-##### tab 3 #######
-
 ### read in the 2.0 data
 ces_2.0 <- read_csv(here("data", "cal_enviro_2.0.csv")) %>% 
   clean_names()
@@ -61,7 +25,44 @@ suppressWarnings({
     clean_names()
 })
 
-### Wrangle data for Tab 3 ###
+##### Tab 2 #####
+
+# read in data for widget 1
+suppressWarnings({
+calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictionary_f_2021.xlsx")) %>%
+  mutate_if(is.numeric, round, digits = 2) %>%
+  na_if(0.000) %>%
+  drop_na() %>%
+  clean_names()
+})
+
+# end data for widget 1
+
+###### Tab 3 ##### 
+
+#read in data for widget 2 
+pollution_map <- calenviroscreen4 %>%
+  select(total_population:ces_4_0_percentile_range, haz_waste, pesticides, tox_release, pollution_burden, pollution_burden_score, poverty) %>%
+  group_by(california_county)
+
+# map data
+
+pollution_map_sf <- pollution_map %>%
+  st_as_sf(coords = c('longitude', 'latitude'))
+
+ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")) %>%
+  clean_names() %>%
+  select(california_county = name)
+
+# end map data
+
+# read in data for widget 2
+
+# end data for widget 2
+
+##### tab 4 #######
+
+### Wrangle data for widget 3 and 4 ###
 
 ces_2.0_clean2 <- ces_2.0 %>% 
   select(`pollution_burden_pctl`, `california_county`, `tox_release_pctl`, `haz_waste_pctl`, `pm2_5_pctl`, `groundwater_threats_pctl`, `pesticides_pctl`) %>% 
@@ -97,23 +98,9 @@ complete_map <- almost_complete_map %>%
 
 map_data <- left_join(ca_county_map, complete_map, "california_county")
 
-# read in data for tab 5
+##### Tab 5 ##### 
 
-### read in the 2.0 data
-ces_2.0 <- read_csv(here("data", "cal_enviro_2.0.csv")) %>% 
-  clean_names()
-
-### read in the 3.0 data
-ces_3.0 <- read_csv(here("data", "cal_enviro_3.0.csv")) %>% 
-  clean_names()
-
-### read in the 4.0 data
-suppressWarnings({
-ces_4.0 <- read_excel(here("data", "calenviroscreen40resultsdatadictionary_F_2021.xlsx")) %>% 
-  clean_names()
-})
-
-### Wrangle the data
+# read in data for widget 5
 
 ### sort by county for each data set, only include pollution percentage
 
@@ -137,13 +124,11 @@ ces_4.0_clean <- ces_4.0 %>%
   summarize_all(~mean(.x, na.rm = TRUE)) %>% 
   mutate(version = 4)
 
-
 complete_df <- bind_rows(ces_2.0_clean, ces_3.0_clean, ces_4.0_clean)
 
 complete_df2 <- complete_df %>% 
   rename(year = version) 
   
-
 complete_df2$year[complete_df2$year == 2] <- 2014
 complete_df2$year[complete_df2$year == 3] <- 2018
 complete_df2$year[complete_df2$year == 4] <- 2021
@@ -265,7 +250,8 @@ navbarPage("CalEnviroScreen Interactive Map",
 
 server <- function(input, output) {
 
-# output for wigit 1
+##### Tab 2 output ###### 
+# output for widget 1
   
 # select county
   
@@ -287,51 +273,52 @@ server <- function(input, output) {
       theme(axis.text = element_text(size = 12))
   ) # end renderPlot
   
-  # end wigit 1
-  
-# output for widget 2
+  # end widget 1
+
+##### Tab 3 output #####
+# output for widget 3
 
 output$tmap_ej <- renderTmap({
     tm_shape(pollution_map_sf) +
     tm_dots("pollution_burden_score") +
     tm_basemap("OpenStreetMap")
 })
-  
-# output for widget 3
+
+# output for widget 2 and 3
 
   cal_reactive2 <- reactive({
     calenviroscreen4 %>%
       filter(california_county %in% input$pick_california_county)
   }) # end output$cal_plot 2
   
-# graph for widget 2
-    output$cal_plot2 <- renderPlot(
-    ggplot(data = cal_reactive2(), aes(x = ozone, y = haz_waste)) +
-    geom_point(aes(color = california_county))
-    ) # end output$cal_plot1
-    
-##### tab 4 output #####
-    
-    
     ## Contaminant Map 
     map_reactive <- reactive({
+      message('input$pick_name = ', input$pick_name)  ## Figure out why pick value is showing up blank 
+      message('input$pick_year = ', input$pick_year)
       map_data %>% 
-        filter(name %in% input$pick_value) %>% 
-        message('input$pick_value = ', input$pick_value) %>%
+        filter(name %in% input$pick_name) %>% 
         filter(year %in% input$pick_year) %>%
-        message('input$pick_year = ', input$pick_year) %>%
         return(map_data)
     }) # end map_reactive
     
     output$pollution_map <- renderTmap({
       tm_shape(shp = map_reactive()) +
-        tm_polygons(col = 'gray') +
+        tm_polygons(col = 'value') +
         tm_fill(col = 'value',
                 title = "Mean Contaminant Concentration Per County",
                 style = 'cont',
                 # popup.vars = c("Population in Poverty (2019)"="povall_2019","Percent of Population in Poverty (2019)"="pctpovall_2019"),
                 popup.format = list()) 
     })
+    
+##### Tab 4 output #####  
+    
+  # graph for widget 4
+    output$cal_plot2 <- renderPlot(
+      ggplot(data = cal_reactive2(), aes(x = ozone, y = haz_waste)) +
+        geom_point(aes(color = california_county))
+    ) # end output$cal_plot2
+    
 ##### tab 5 output #####
     
 # select county drop down
