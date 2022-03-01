@@ -1,4 +1,5 @@
 #### packages
+
 library(shiny)
 library(tidyverse)
 library(bslib)
@@ -10,6 +11,8 @@ library(sf)
 library(tmap)
 
 tmap_mode("view")
+
+#### data
 
 ### read in the 2.0 data
 ces_2.0 <- read_csv(here("data", "cal_enviro_2.0.csv")) %>% 
@@ -25,9 +28,8 @@ suppressWarnings({
     clean_names()
 })
 
-##### Tab 2 #####
+### tab 2
 
-# read in data for widget 1
 suppressWarnings({
 calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictionary_f_2021.xlsx")) %>%
   mutate_if(is.numeric, round, digits = 2) %>%
@@ -36,11 +38,10 @@ calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictiona
   clean_names()
 })
 
-# end data for widget 1
 
-###### Tab 3 ##### 
+### tab 3
 
-#read in data for widget 2 
+# pollution map data filtering
 pollution_map <- calenviroscreen4 %>%
   select(total_population:ces_4_0_percentile_range, haz_waste, pesticides, tox_release, pollution_burden, pollution_burden_score, poverty) %>%
   group_by(california_county)
@@ -54,15 +55,23 @@ ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")
   clean_names() %>%
   select(california_county = name)
 
-# end map data
+almost_complete_map <- bind_rows(ces_2.0_clean2, ces_3.0_clean2, ces_4.0_clean2)
 
-# read in data for widget 2
+complete_map <- almost_complete_map %>% 
+  pivot_longer(pollution_burden_pctl:pesticides_pctl) %>% 
+  mutate(name = case_when(name %in% c("pollution_burden_pctl") ~ "Pollution Burden %",
+                          name %in% c("tox_release_pctl") ~ "Toxic Release %",
+                          name %in% c("haz_waste_pctl") ~ "Hazardous Waste %",
+                          name %in% c("pm2_5_pctl") ~ "PM 2.5 %",
+                          name %in% c("groundwater_threats_pctl") ~ "Groundwater Threats %",
+                          name %in% c("pesticides_pctl") ~ "Pesticides %"))
 
-# end data for widget 2
+map_data <- left_join(ca_county_map, complete_map, "california_county")
 
-##### tab 4 #######
 
-### Wrangle data for widget 3 and 4 ###
+#### tab 4
+
+### wrangle data for tab 3 and 4 
 
 ces_2.0_clean2 <- ces_2.0 %>% 
   select(`pollution_burden_pctl`, `california_county`, `tox_release_pctl`, `haz_waste_pctl`, `pm2_5_pctl`, `groundwater_threats_pctl`, `pesticides_pctl`) %>% 
@@ -85,22 +94,7 @@ ces_4.0_clean2 <- ces_4.0 %>%
   mutate(year = 2021)
 
 
-almost_complete_map <- bind_rows(ces_2.0_clean2, ces_3.0_clean2, ces_4.0_clean2)
-
-complete_map <- almost_complete_map %>% 
-  pivot_longer(pollution_burden_pctl:pesticides_pctl) %>% 
-  mutate(name = case_when(name %in% c("pollution_burden_pctl") ~ "Pollution Burden %",
-                          name %in% c("tox_release_pctl") ~ "Toxic Release %",
-                          name %in% c("haz_waste_pctl") ~ "Hazardous Waste %",
-                          name %in% c("pm2_5_pctl") ~ "PM 2.5 %",
-                          name %in% c("groundwater_threats_pctl") ~ "Groundwater Threats %",
-                          name %in% c("pesticides_pctl") ~ "Pesticides %"))
-
-map_data <- left_join(ca_county_map, complete_map, "california_county")
-
-##### Tab 5 ##### 
-
-# read in data for widget 5
+#### tab 5 
 
 ### sort by county for each data set, only include pollution percentage
 
@@ -134,9 +128,8 @@ complete_df2$year[complete_df2$year == 3] <- 2018
 complete_df2$year[complete_df2$year == 4] <- 2021
 
 
-# end data for tab 5
 
-# custom theme
+#### custom theme
 shiny_theme <- bs_theme(
   bg = "#4e5d6c",
   fg = "honeydew",
@@ -145,11 +138,11 @@ shiny_theme <- bs_theme(
   heading_font = font_google("Lato")
 )
 
-# start shiny app
+##### start shiny app ui #####
 
 ui <- fluidPage(theme = shiny_theme,
 
-# homepage
+##### homepage  ######
                 
 navbarPage("CalEnviroScreen Interactive Map",
     tabPanel("Project Overview",
@@ -227,8 +220,6 @@ navbarPage("CalEnviroScreen Interactive Map",
 
 
 ##### tab 4 ######
-
-##### tab 5 ######
     tabPanel("California Pollution Burden Through Time",
             sidebarLayout(
               sidebarPanel(
@@ -244,9 +235,11 @@ navbarPage("CalEnviroScreen Interactive Map",
           ), # end tabpanel 5
 
     ) #end navbar
-) # end ui
+) 
 
-# create server object
+##### end ui #####
+
+##### start server #####
 
 server <- function(input, output) {
 
@@ -285,11 +278,6 @@ output$tmap_ej <- renderTmap({
 })
 
 # output for widget 2 and 3
-
-  cal_reactive2 <- reactive({
-    calenviroscreen4 %>%
-      filter(california_county %in% input$pick_california_county)
-  }) # end output$cal_plot 2
   
     ## Contaminant Map 
     map_reactive <- reactive({
@@ -314,6 +302,12 @@ output$tmap_ej <- renderTmap({
 ##### Tab 4 output #####  
     
   # graph for widget 4
+    
+    cal_reactive2 <- reactive({
+      calenviroscreen4 %>%
+        filter(california_county %in% input$pick_california_county)
+    }) # end output$cal_plot 2
+    
     output$cal_plot2 <- renderPlot(
       ggplot(data = cal_reactive2(), aes(x = ozone, y = haz_waste)) +
         geom_point(aes(color = california_county))
@@ -344,7 +338,9 @@ output$tmap_ej <- renderTmap({
       theme(axis.text = element_text(size = 12)) +
       theme_minimal()
     ) # end renderPlot
-} # end server
+} 
+
+##### end server #####
 
 
 shinyApp(ui = ui, server = server)
