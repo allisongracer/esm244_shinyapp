@@ -1,5 +1,6 @@
 #### packages
 library(shiny)
+library(shinyWidgets)
 library(tidyverse)
 library(bslib)
 library(shinythemes)
@@ -192,16 +193,17 @@ navbarPage("CalEnviroScreen Interactive Map",
                sidebarPanel(
                  "Choose Variables",
                  hr(),
-                 selectInput(inputId = "pick_name",
+                 radioButtons(inputId = "pick_name",
                              label = "Select Variable",
                              choices = unique(map_data$name),
                              selected = "Pollution Burden %"
                              ), # end selectInput
-                 sliderInput(inputId = "pick_year",
+                 sliderTextInput(inputId = "pick_year",
                              label = "Choose timeframe",
-                             min = min(map_data$year),
-                             max = max(map_data$year),
-                             value = min(map_data$year),
+                             choices = unique(map_data$year), 
+                             grid = TRUE,
+                             animate = TRUE, 
+                             dragRange = TRUE
                  ), # end sliderInput
                ), # end sidebarPanel
              mainPanel( # start main panel 2
