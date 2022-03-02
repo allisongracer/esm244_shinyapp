@@ -28,7 +28,6 @@ suppressWarnings({
     clean_names()
 })
 
-### tab 2
 
 suppressWarnings({
 calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictionary_f_2021.xlsx")) %>%
@@ -38,6 +37,10 @@ calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictiona
   clean_names()
 })
 
+### tab 2
+
+pollution_graph <- complete_map %>%
+  select(california_county, name, value)
 
 ### tab 3
 
@@ -169,9 +172,9 @@ navbarPage("CalEnviroScreen Interactive Map",
     tabPanel("California Pollution Score by Poverty",
               sidebarLayout(
                 sidebarPanel(
-                  selectInput(inputId = "pick_california_county",
+                  selectInput(inputId = "pick_county_tab2",
                                      label = h3("Choose California County:"),
-                                     choices = unique(calenviroscreen4$california_county),
+                                     choices = unique(pollution_graph$california_county),
 
                                      selected = "Los Angeles"
                               ), #end selectInput
@@ -249,16 +252,16 @@ server <- function(input, output) {
 # select county
   
   cal_reactive1 <- reactive({
-    pollution_map %>%
-      filter(california_county %in% c(input$pick_california_county))
+    pollution_graph %>%
+      filter(california_county %in% c(input$pick_county_tab2))
   }) 
   
 # reactive plot
   
   output$pollution_plot <- renderPlot(
     
-    ggplot(data = cal_reactive1(), aes(x = poverty, y = pollution_burden_score)) +
-      geom_col(fill = "darkred", color = "black", stat = "identity", width = 0.5) +
+    ggplot(data = cal_reactive1(), aes(x = name, y = value)) +
+      geom_bar(fill = "darkred", color = "black", stat = "identity", width = 0.5) +
       theme_minimal(base_size = 12) +
       labs(x = "Low Income Percentiles", 
            y = "Pollution Burden Score",
@@ -299,21 +302,8 @@ output$tmap_ej <- renderTmap({
                 popup.format = list()) 
     })
     
-##### Tab 4 output #####  
     
-  # graph for widget 4
-    
-    cal_reactive2 <- reactive({
-      calenviroscreen4 %>%
-        filter(california_county %in% input$pick_california_county)
-    }) # end output$cal_plot 2
-    
-    output$cal_plot2 <- renderPlot(
-      ggplot(data = cal_reactive2(), aes(x = ozone, y = haz_waste)) +
-        geom_point(aes(color = california_county))
-    ) # end output$cal_plot2
-    
-##### tab 5 output #####
+##### tab 4 output #####
     
 # select county drop down
     cal_reactive5 <- reactive({
