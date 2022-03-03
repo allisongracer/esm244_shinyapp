@@ -43,8 +43,7 @@ calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictiona
 pollution_graph <- complete_map %>%
   select(california_county, name, value, year) %>%
   filter(year == "2021") %>%
-  group_by(california_county) %>%
-  mutate(across(where(is.numeric), round, 2))
+  group_by(california_county)
 
 ### tab 3
 
@@ -179,10 +178,8 @@ navbarPage("CalEnviroScreen Interactive Map",
                   checkboxGroupInput(inputId = "pick_county_tab2",
                                      label = h3("Choose California County:"),
                                      choices = unique(pollution_graph$california_county),
-
                                      selected = "Alameda"
                               ), #end checkboxGroupInput
-
                 ), # end sidebarPanel 2
               mainPanel(plotOutput("pollution_plot")) # end mainPanel 2
               ) # end sidebarLayout 2
