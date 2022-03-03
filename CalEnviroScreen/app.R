@@ -9,6 +9,7 @@ library(readxl)
 library(janitor)
 library(sf)
 library(tmap)
+library(dplyr)
 
 tmap_mode("view")
 
@@ -40,7 +41,10 @@ calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictiona
 ### tab 2
 
 pollution_graph <- complete_map %>%
-  select(california_county, name, value)
+  select(california_county, name, value, year) %>%
+  filter(year == "2021") %>%
+  group_by(california_county) %>%
+  mutate(across(where(is.numeric), round, 2))
 
 ### tab 3
 
@@ -172,17 +176,19 @@ navbarPage("CalEnviroScreen Interactive Map",
     tabPanel("California Pollution Score by Poverty",
               sidebarLayout(
                 sidebarPanel(
-                  selectInput(inputId = "pick_county_tab2",
+                  checkboxGroupInput(inputId = "pick_county_tab2",
                                      label = h3("Choose California County:"),
                                      choices = unique(pollution_graph$california_county),
 
-                                     selected = "Los Angeles"
-                              ), #end selectInput
+                                     selected = "Alameda"
+                              ), #end checkboxGroupInput
 
                 ), # end sidebarPanel 2
               mainPanel(plotOutput("pollution_plot")) # end mainPanel 2
               ) # end sidebarLayout 2
     ), # end tabpanel 2
+
+##### tab 3  ######
     tabPanel("California Pollution Map", # start panel 2
              sidebarLayout(
                sidebarPanel(
@@ -205,21 +211,6 @@ navbarPage("CalEnviroScreen Interactive Map",
                ) # end main panel 2
              ) # end sidebarLayout
              ), # end tabpanel 2
-
-##### tab 3 ######
-
-    tabPanel("Pollution Burden Per Capita",
-             sidebarLayout(
-               sidebarPanel(
-                 checkboxGroupInput(inputId = "pick_california_county",
-                                    label = "Choose California County:",
-                                    choices = unique(calenviroscreen4$california_county)
-                                    ) # end checkboxGroupInput
-               ), #end sidebarPanel                 
-               mainPanel("Pollution Burden Per Capita",
-                         plotOutput("cal_plot2"))
-             ) # end sidebarLayout
-    ), # end tabpanel 3
 
 
 ##### tab 4 ######
@@ -253,7 +244,7 @@ server <- function(input, output) {
   
   cal_reactive1 <- reactive({
     pollution_graph %>%
-      filter(california_county %in% c(input$pick_county_tab2))
+      filter(california_county %in% input$pick_county_tab2)
   }) 
   
 # reactive plot
@@ -261,12 +252,12 @@ server <- function(input, output) {
   output$pollution_plot <- renderPlot(
     
     ggplot(data = cal_reactive1(), aes(x = name, y = value)) +
-      geom_bar(fill = "darkred", color = "black", stat = "identity", width = 0.5) +
+      geom_col(aes(fill = california_county), position = "dodge") +
       theme_minimal(base_size = 12) +
-      labs(x = "Low Income Percentiles", 
-           y = "Pollution Burden Score",
-           title = "Pollution Burden Score vs Poverty Percentiles") +
-      theme(axis.text = element_text(size = 12))
+      coord_flip() +
+      labs(y = "Percentile",
+           title = "Pollution Variable Percentiles by County") +
+      theme(axis.text = element_text(size = 12)) 
   ) # end renderPlot
   
   # end widget 1
