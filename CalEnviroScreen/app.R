@@ -10,6 +10,8 @@ library(janitor)
 library(sf)
 library(tmap)
 library(dplyr)
+library(RColorBrewer)
+
 
 tmap_mode("view")
 
@@ -172,7 +174,7 @@ navbarPage("CalEnviroScreen Interactive Map",
     
 ##### tab 2  ######
 
-    tabPanel("California Pollution Score by Poverty",
+    tabPanel("California Pollution Burden by County",
               sidebarLayout(
                 sidebarPanel(
                   checkboxGroupInput(inputId = "pick_county_tab2",
@@ -251,9 +253,12 @@ server <- function(input, output) {
     ggplot(data = cal_reactive1(), aes(x = name, y = value)) +
       geom_col(aes(fill = california_county), position = "dodge") +
       theme_minimal(base_size = 12) +
+      scale_fill_brewer(palette = "Paired") +
       coord_flip() +
-      labs(y = "Percentile",
-           title = "Pollution Variable Percentiles by County") +
+      labs(x = "Pollution Variable",
+           y = "Percentile %",
+           title = "Pollution Variable Percentiles by County",
+           fill = "California County") +
       theme(axis.text = element_text(size = 12)) 
   ) # end renderPlot
   
