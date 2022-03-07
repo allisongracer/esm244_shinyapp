@@ -11,6 +11,8 @@ library(sf)
 library(tmap)
 library(dplyr)
 library(RColorBrewer)
+library(shinyWidgets)
+library(lubridate)
 
 
 tmap_mode("view")
@@ -152,7 +154,7 @@ ui <- fluidPage(theme = shiny_theme,
 
 ##### homepage  ######
                 
-navbarPage("CalEnviroScreen Interactive Map",
+navbarPage("CalEnviroScreen Interactive Tool",
     tabPanel("Project Overview",
              titlePanel(h2("Environmental Justice Screening and Mapping Tool", align = "center")),
       mainPanel(
@@ -177,13 +179,18 @@ navbarPage("CalEnviroScreen Interactive Map",
     tabPanel("California Pollution Burden by County",
               sidebarLayout(
                 sidebarPanel(
-                  checkboxGroupInput(inputId = "pick_county_tab2",
-                                     label = h3("Choose California County:"),
+                  pickerInput(inputId = "pick_county_tab2",
+                                     label = h3("Choose California Counties:"),
                                      choices = unique(pollution_graph$california_county),
+                                     multiple = TRUE,
                                      selected = "Alameda"
                               ), #end checkboxGroupInput
+                  hr(),
+                  helpText("By selecting multiple counties from the top-down menu, users can view how pollution variables compare bassed on the 2020 data."),
                 ), # end sidebarPanel 2
-              mainPanel(plotOutput("pollution_plot")) # end mainPanel 2
+              mainPanel(plotOutput("pollution_plot"), # end mainPanel 2
+              br(),
+              ) # end mainPanel
               ) # end sidebarLayout 2
     ), # end tabpanel 2
 
@@ -191,9 +198,9 @@ navbarPage("CalEnviroScreen Interactive Map",
     tabPanel("California Pollution Map", # start panel 2
              sidebarLayout(
                sidebarPanel(
-                 "Choose Variables",
+                 "Choose Pollution Variable and Year",
                  hr(),
-                 selectInput(inputId = "pick_name",
+                 checkboxGroupInput(inputId = "pick_name",
                              label = "Select Variable",
                              choices = unique(map_data$name),
                              selected = "Pollution Burden %"
