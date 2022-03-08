@@ -43,43 +43,6 @@ calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictiona
   clean_names()
 })
 
-### tab 2
-
-pollution_graph <- complete_map %>%
-  select(california_county, name, value, year) %>%
-  filter(year == "2021") %>%
-  group_by(california_county)
-
-### tab 3
-
-# pollution map data filtering
-pollution_map <- calenviroscreen4 %>%
-  select(total_population:ces_4_0_percentile_range, haz_waste, pesticides, tox_release, pollution_burden, pollution_burden_score, poverty) %>%
-  group_by(california_county)
-
-# map data
-
-pollution_map_sf <- pollution_map %>%
-  st_as_sf(coords = c('longitude', 'latitude'))
-
-ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")) %>%
-  clean_names() %>%
-  select(california_county = name)
-
-almost_complete_map <- bind_rows(ces_2.0_clean2, ces_3.0_clean2, ces_4.0_clean2)
-
-complete_map <- almost_complete_map %>% 
-  pivot_longer(pollution_burden_pctl:pesticides_pctl) %>% 
-  mutate(name = case_when(name %in% c("pollution_burden_pctl") ~ "Pollution Burden %",
-                          name %in% c("tox_release_pctl") ~ "Toxic Release %",
-                          name %in% c("haz_waste_pctl") ~ "Hazardous Waste %",
-                          name %in% c("pm2_5_pctl") ~ "PM 2.5 %",
-                          name %in% c("groundwater_threats_pctl") ~ "Groundwater Threats %",
-                          name %in% c("pesticides_pctl") ~ "Pesticides %"))
-
-map_data <- left_join(ca_county_map, complete_map, "california_county")
-
-
 #### tab 4
 
 ### wrangle data for tab 3 and 4 
@@ -103,6 +66,45 @@ ces_4.0_clean2 <- ces_4.0 %>%
   group_by(california_county) %>% 
   summarize_all(~mean(.x, na.rm = TRUE)) %>% 
   mutate(year = 2021)
+
+
+### tab 2
+almost_complete_map <- bind_rows(ces_2.0_clean2, ces_3.0_clean2, ces_4.0_clean2)
+
+complete_map <- almost_complete_map %>% 
+  pivot_longer(pollution_burden_pctl:pesticides_pctl) %>% 
+  mutate(name = case_when(name %in% c("pollution_burden_pctl") ~ "Pollution Burden %",
+                          name %in% c("tox_release_pctl") ~ "Toxic Release %",
+                          name %in% c("haz_waste_pctl") ~ "Hazardous Waste %",
+                          name %in% c("pm2_5_pctl") ~ "PM 2.5 %",
+                          name %in% c("groundwater_threats_pctl") ~ "Groundwater Threats %",
+                          name %in% c("pesticides_pctl") ~ "Pesticides %"))
+
+pollution_graph <- complete_map %>%
+  select(california_county, name, value, year) %>%
+  filter(year == "2021") %>%
+  group_by(california_county)
+
+### tab 3
+
+# pollution map data filtering
+pollution_map <- calenviroscreen4 %>%
+  select(total_population:ces_4_0_percentile_range, haz_waste, pesticides, tox_release, pollution_burden, pollution_burden_score, poverty) %>%
+  group_by(california_county)
+
+# map data
+
+pollution_map_sf <- pollution_map %>%
+  st_as_sf(coords = c('longitude', 'latitude'))
+
+ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")) %>%
+  clean_names() %>%
+  select(california_county = name)
+
+
+
+map_data <- left_join(ca_county_map, complete_map, "california_county")
+
 
 
 #### tab 5 
