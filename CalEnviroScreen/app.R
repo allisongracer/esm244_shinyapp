@@ -159,18 +159,22 @@ navbarPage("CalEnviroScreen Interactive Tool",
              titlePanel(h2("Environmental Justice Screening and Mapping Tool", align = "center")),
       mainPanel(
         fluidRow(
-        h1("Project Description", align = "center"),
-        p("CalEnviroScreen was designed to assist CalEPA with carrying out its environmental justice mission to ensure the fair treatment of all Californians, including minority and low-income communities.",
-          ),
-        br(), 
-        p("CalEnviroScreen uses environmental, health, and socioeconomic information to produce scores for every census tract in the state. An area with a high score is one that experiences a much higher pollution burden than areas with low scores. CalEnviroScreen ranks communities based on data that are available from state and federal government sources.",
-          ),
-        br(),
-        p("The purpose of this Shiny App is to explore data from CalEnviroScreen 2.0 (2014),  3.0 (2018), and 4.0 (2021) to better visualize how pollution-based parameters affect demographics in California, and to analyze how these parameters have or have not changed over time."),
-        br(),
-        h2("Data Citation:", align = "center"),
-        p("1. United States Environmental Protection Agency. 2018 - 2020. EJScreen. Retrieved: 1/12/22, from url https://www.epa.gov/ejscreen/download-ejscreen-data"),
-        ) # end fluidRow
+          column(10,
+          h1("Project Description", align = "center"),
+          p("CalEnviroScreen was designed to assist CalEPA with carrying out its environmental justice mission to ensure the fair treatment of all Californians, including minority and low-income communities."),
+          br(), 
+          p("CalEnviroScreen uses environmental, health, and socioeconomic information to produce scores for every census tract in the state. An area with a high score is one that experiences a much higher pollution burden than areas with low scores. CalEnviroScreen ranks communities based on data that are available from state and federal government sources."),
+          br(),
+          p("The purpose of this Shiny App is to explore data from CalEnviroScreen 2.0 (2014),  3.0 (2018), and 4.0 (2021) to better visualize how pollution-based parameters affect demographics in California, and to analyze how these parameters have or have not changed over time."),
+          br(),
+          h1("Data Citation:", align = "center"),
+          p("1. United States Environmental Protection Agency. 2018 - 2020. EJScreen. Retrieved: 1/12/22, from url https://www.epa.gov/ejscreen/download-ejscreen-data"),
+          column(2,
+                 img(src = "pollution_burden.jpg", height = 200, width = 300),
+                 br(),
+          ), # end column
+          ), # end column
+          ) # end fluidRow
       ), #end mainpanel
     ), # end tabPanel
     
@@ -186,7 +190,7 @@ navbarPage("CalEnviroScreen Interactive Tool",
                                      selected = "Alameda"
                               ), #end checkboxGroupInput
                   hr(),
-                  helpText("By selecting multiple counties from the top-down menu, users can view how pollution variables compare bassed on the 2020 data."),
+                  helpText("By selecting multiple counties from the top-down menu, users can compare differnt pollution variables based on county."),
                 ), # end sidebarPanel 2
               mainPanel(plotOutput("pollution_plot"), # end mainPanel 2
               br(),
@@ -212,6 +216,8 @@ navbarPage("CalEnviroScreen Interactive Tool",
                                  animate = TRUE, 
                                  dragRange = TRUE
                  ), # end sliderInput
+                 hr(),
+                 helpText("Users can select different pollutions variables and view how they change over time based on California county."),
                ), # end sidebarPanel
              mainPanel( # start main panel 2
                tmapOutput(outputId = "pollution_map")
