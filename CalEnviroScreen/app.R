@@ -172,7 +172,11 @@ navbarPage("CalEnviroScreen Interactive Tool",
         p("The purpose of this Shiny App is to explore data from CalEnviroScreen 2.0 (2014),  3.0 (2018), and 4.0 (2021) to better visualize how pollution-based parameters affect demographics in California, and to analyze how these parameters have or have not changed over time."),
         br(),
         h2("Data Citation:", align = "center"),
-        p("1. United States Environmental Protection Agency. 2018 - 2020. EJScreen. Retrieved: 1/12/22, from url https://www.epa.gov/ejscreen/download-ejscreen-data"),
+        p("1. California Office of Environmental Health Hazard Assessment. CalEnviroScreen 4.0 Data. 2021. https://oehha.ca.gov/calenviroscreen/maps-data/download-data"),
+        br(),
+        p("2. California Office of Environmental Health Hazard Assessment. CalEnviroScreen 3.0 Data. 2018. https://data.ca.gov/dataset/calenviroscreen-3-0-results"),
+        br(),
+        p("3. California Office of Environmental Health Hazard Assessment. CalEnviroScreen 2.0 Data. 2014. https://data.ca.gov/dataset/calenviroscreen-2-0"),
         ) # end fluidRow
       ), #end mainpanel
     ), # end tabPanel
