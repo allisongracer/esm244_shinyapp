@@ -200,7 +200,7 @@ navbarPage("CalEnviroScreen Interactive Tool",
                sidebarPanel(
                  "Choose Pollution Variable and Year",
                  hr(),
-                 checkboxGroupInput(inputId = "pick_name",
+                 radioButtons(inputId = "pick_name",
                              label = "Select Variable",
                              choices = unique(map_data$name),
                              selected = "Pollution Burden %"
