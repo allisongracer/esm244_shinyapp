@@ -106,7 +106,6 @@ ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")
 map_data <- left_join(ca_county_map, complete_map, "california_county")
 
 
-
 #### tab 5 
 
 ### sort by county for each data set, only include pollution percentage
@@ -139,7 +138,6 @@ complete_df2 <- complete_df %>%
 complete_df2$year[complete_df2$year == 2] <- 2014
 complete_df2$year[complete_df2$year == 3] <- 2018
 complete_df2$year[complete_df2$year == 4] <- 2021
-
 
 
 #### custom theme
@@ -222,7 +220,13 @@ navbarPage("CalEnviroScreen Interactive Tool",
                  ), # end sliderInput
                ), # end sidebarPanel
              mainPanel( # start main panel 2
-               tmapOutput(outputId = "pollution_map")
+               tmapOutput(outputId = "pollution_map"),
+               br(),
+                 p("This map allows you to explore a variety pollution metrics across Counties in California from the EPA CalEnviroscreen Reports! 
+                   This helps to visualize the changes each county has experienced in the last 8 years to highlight which are in the need of management 
+                   efforts."),
+               p("Selectable years are 2014, 2018 or 2021. 
+                   Click on a county to see its true score!")
                ) # end main panel 2
              ) # end sidebarLayout
              ), # end tabpanel 2
