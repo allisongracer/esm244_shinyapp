@@ -1,6 +1,7 @@
 #### packages
 
 library(shiny)
+library(shinyWidgets)
 library(tidyverse)
 library(bslib)
 library(shinythemes)
@@ -42,43 +43,6 @@ calenviroscreen4 <- read_xlsx(here("Data", "calenviroscreen40resultsdatadictiona
   clean_names()
 })
 
-### tab 2
-
-pollution_graph <- complete_map %>%
-  select(california_county, name, value, year) %>%
-  filter(year == "2021") %>%
-  group_by(california_county)
-
-### tab 3
-
-# pollution map data filtering
-pollution_map <- calenviroscreen4 %>%
-  select(total_population:ces_4_0_percentile_range, haz_waste, pesticides, tox_release, pollution_burden, pollution_burden_score, poverty) %>%
-  group_by(california_county)
-
-# map data
-
-pollution_map_sf <- pollution_map %>%
-  st_as_sf(coords = c('longitude', 'latitude'))
-
-ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")) %>%
-  clean_names() %>%
-  select(california_county = name)
-
-almost_complete_map <- bind_rows(ces_2.0_clean2, ces_3.0_clean2, ces_4.0_clean2)
-
-complete_map <- almost_complete_map %>% 
-  pivot_longer(pollution_burden_pctl:pesticides_pctl) %>% 
-  mutate(name = case_when(name %in% c("pollution_burden_pctl") ~ "Pollution Burden %",
-                          name %in% c("tox_release_pctl") ~ "Toxic Release %",
-                          name %in% c("haz_waste_pctl") ~ "Hazardous Waste %",
-                          name %in% c("pm2_5_pctl") ~ "PM 2.5 %",
-                          name %in% c("groundwater_threats_pctl") ~ "Groundwater Threats %",
-                          name %in% c("pesticides_pctl") ~ "Pesticides %"))
-
-map_data <- left_join(ca_county_map, complete_map, "california_county")
-
-
 #### tab 4
 
 ### wrangle data for tab 3 and 4 
@@ -102,6 +66,46 @@ ces_4.0_clean2 <- ces_4.0 %>%
   group_by(california_county) %>% 
   summarize_all(~mean(.x, na.rm = TRUE)) %>% 
   mutate(year = 2021)
+
+
+### tab 2
+almost_complete_map <- bind_rows(ces_2.0_clean2, ces_3.0_clean2, ces_4.0_clean2)
+
+complete_map <- almost_complete_map %>% 
+  pivot_longer(pollution_burden_pctl:pesticides_pctl) %>% 
+  mutate(name = case_when(name %in% c("pollution_burden_pctl") ~ "Pollution Burden %",
+                          name %in% c("tox_release_pctl") ~ "Toxic Release %",
+                          name %in% c("haz_waste_pctl") ~ "Hazardous Waste %",
+                          name %in% c("pm2_5_pctl") ~ "PM 2.5 %",
+                          name %in% c("groundwater_threats_pctl") ~ "Groundwater Threats %",
+                          name %in% c("pesticides_pctl") ~ "Pesticides %"))
+
+pollution_graph <- complete_map %>%
+  select(california_county, name, value, year) %>%
+  filter(year == "2021") %>%
+  group_by(california_county) %>%
+  mutate(name = fct_relevel(name, "Pollution Burden %", "Toxic Release %", "Hazardous Waste %", "PM 2.5 %", "Groundwater Threats %", "Pesticides %"))
+
+### tab 3
+
+# pollution map data filtering
+pollution_map <- calenviroscreen4 %>%
+  select(total_population:ces_4_0_percentile_range, haz_waste, pesticides, tox_release, pollution_burden, pollution_burden_score, poverty) %>%
+  group_by(california_county)
+
+# map data
+
+pollution_map_sf <- pollution_map %>%
+  st_as_sf(coords = c('longitude', 'latitude'))
+
+ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")) %>%
+  clean_names() %>%
+  select(california_county = name)
+
+
+
+map_data <- left_join(ca_county_map, complete_map, "california_county")
+
 
 
 #### tab 5 
@@ -157,25 +161,30 @@ ui <- fluidPage(theme = shiny_theme,
 navbarPage("CalEnviroScreen Interactive Tool",
     tabPanel("Project Overview",
              titlePanel(h2("Environmental Justice Screening and Mapping Tool", align = "center")),
-      mainPanel(
-        fluidRow(
-          column(10,
+             titlePanel(h3("Created By: Taylor Gries, Allison, Logan", align = "center")),
+             br(),
+             br(),
+             br(),
+        fixedRow(
+          column(8,
           h1("Project Description", align = "center"),
           p("CalEnviroScreen was designed to assist CalEPA with carrying out its environmental justice mission to ensure the fair treatment of all Californians, including minority and low-income communities."),
-          br(), 
+          br(),
           p("CalEnviroScreen uses environmental, health, and socioeconomic information to produce scores for every census tract in the state. An area with a high score is one that experiences a much higher pollution burden than areas with low scores. CalEnviroScreen ranks communities based on data that are available from state and federal government sources."),
           br(),
           p("The purpose of this Shiny App is to explore data from CalEnviroScreen 2.0 (2014),  3.0 (2018), and 4.0 (2021) to better visualize how pollution-based parameters affect demographics in California, and to analyze how these parameters have or have not changed over time."),
           br(),
           h1("Data Citation:", align = "center"),
           p("1. United States Environmental Protection Agency. 2018 - 2020. EJScreen. Retrieved: 1/12/22, from url https://www.epa.gov/ejscreen/download-ejscreen-data"),
-          column(2,
-                 img(src = "pollution_burden.jpg", height = 200, width = 300),
-                 br(),
           ), # end column
+          column(4,
+          br(), 
+          br(), 
+          br(), 
+          br(), 
+          img(src = "pollution_burden.jpg", width = 450),
           ), # end column
           ) # end fluidRow
-      ), #end mainpanel
     ), # end tabPanel
     
 ##### tab 2  ######
@@ -194,6 +203,7 @@ navbarPage("CalEnviroScreen Interactive Tool",
                 ), # end sidebarPanel 2
               mainPanel(plotOutput("pollution_plot"), # end mainPanel 2
               br(),
+              p("Communities of color often bear disproportionate burden from pollution from multiple sources. Multiple factors or stressors contribute to the overall pollution burden. In this report, pollution burden includes exposures and environmental effects."),
               ) # end mainPanel
               ) # end sidebarLayout 2
     ), # end tabpanel 2
@@ -210,11 +220,11 @@ navbarPage("CalEnviroScreen Interactive Tool",
                              selected = "Pollution Burden %"
                              ), # end selectInput
                  sliderTextInput(inputId = "pick_year",
-                                 label = "Choose timeframe",
-                                 choices = unique(map_data$year), 
-                                 grid = TRUE,
-                                 animate = TRUE, 
-                                 dragRange = TRUE
+                             label = "Choose timeframe",
+                             choices = unique(map_data$year), 
+                             grid = TRUE,
+                             animate = TRUE, 
+                             dragRange = TRUE
                  ), # end sliderInput
                  hr(),
                  helpText("Users can select different pollutions variables and view how they change over time based on California county."),
@@ -242,7 +252,7 @@ navbarPage("CalEnviroScreen Interactive Tool",
           ), # end tabpanel 5
 
     ) #end navbar
-) 
+)
 
 ##### end ui #####
 
