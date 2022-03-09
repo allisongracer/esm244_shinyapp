@@ -161,34 +161,12 @@ ui <- fluidPage(theme = shiny_theme,
 navbarPage("CalEnviroScreen Interactive Tool",
     tabPanel("Project Overview",
              titlePanel(h2("Environmental Justice Screening and Mapping Tool", align = "center")),
-<<<<<<< HEAD
              titlePanel(h3("Created By: Taylor Gries, Allison, Logan", align = "center")),
              br(),
              br(),
              br(),
         fixedRow(
           column(8,
-          h1("Project Description", align = "center"),
-          p("CalEnviroScreen was designed to assist CalEPA with carrying out its environmental justice mission to ensure the fair treatment of all Californians, including minority and low-income communities."),
-          br(),
-          p("CalEnviroScreen uses environmental, health, and socioeconomic information to produce scores for every census tract in the state. An area with a high score is one that experiences a much higher pollution burden than areas with low scores. CalEnviroScreen ranks communities based on data that are available from state and federal government sources."),
-          br(),
-          p("The purpose of this Shiny App is to explore data from CalEnviroScreen 2.0 (2014),  3.0 (2018), and 4.0 (2021) to better visualize how pollution-based parameters affect demographics in California, and to analyze how these parameters have or have not changed over time."),
-          br(),
-          h1("Data Citation:", align = "center"),
-          p("1. United States Environmental Protection Agency. 2018 - 2020. EJScreen. Retrieved: 1/12/22, from url https://www.epa.gov/ejscreen/download-ejscreen-data"),
-          ), # end column
-          column(4,
-          br(), 
-          br(), 
-          br(), 
-          br(), 
-          img(src = "pollution_burden.jpg", width = 450),
-          ), # end column
-          ) # end fluidRow
-=======
-      mainPanel(
-        fluidRow(
         h1("Project Description", align = "center"),
         p("CalEnviroScreen was designed to assist CalEPA with carrying out its environmental justice mission to ensure the fair treatment of all Californians, including minority and low-income communities.",
           ),
@@ -204,9 +182,15 @@ navbarPage("CalEnviroScreen Interactive Tool",
         p("2. California Office of Environmental Health Hazard Assessment. CalEnviroScreen 3.0 Data. 2018. https://data.ca.gov/dataset/calenviroscreen-3-0-results"),
         br(),
         p("3. California Office of Environmental Health Hazard Assessment. CalEnviroScreen 2.0 Data. 2014. https://data.ca.gov/dataset/calenviroscreen-2-0"),
-        ) # end fluidRow
-      ), #end mainpanel
->>>>>>> main
+        ), # end column
+        column(4,
+              br(), 
+              br(), 
+              br(), 
+              br(), 
+              img(src = "pollution_burden.jpg", width = 450),
+        ), # end column
+        ), # end fixedrow
     ), # end tabPanel
     
 ##### tab 2  ######
