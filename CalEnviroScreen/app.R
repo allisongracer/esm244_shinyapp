@@ -202,8 +202,8 @@ navbarPage("CalEnviroScreen Interactive Tool",
                   helpText("By selecting multiple counties from the top-down menu, users can compare differnt pollution variables based on county."),
                 ), # end sidebarPanel 2
               mainPanel(plotOutput("pollution_plot"), # end mainPanel 2
-              br(),
-              p("Communities of color often bear disproportionate burden from pollution from multiple sources. Multiple factors or stressors contribute to the overall pollution burden. In this report, pollution burden includes exposures and environmental effects."),
+              p("Communities of color often bear disproportionate burden from pollution from multiple sources. Multiple factors or stressors contribute to the overall pollution burden."),
+              p("In this report, pollution burden includes exposures and environmental effects. Pollution buden encompasses multiple variables such as Ozone Concentration, PM 2.5 Concentrations, Diesel PM emissions, Drinking Water Contaminants, Children's Lead Risk from Housing, Pesticide Use, Toxic Releases from Facilities, and Traffic Impacts. Our team chose a few other key pollution variables to get an more specific view on what goes into pollution burden."),
               ) # end mainPanel
               ) # end sidebarLayout 2
     ), # end tabpanel 2
