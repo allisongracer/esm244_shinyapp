@@ -218,15 +218,16 @@ navbarPage("CalEnviroScreen Interactive Tool",
                              animate = TRUE, 
                              dragRange = TRUE
                  ), # end sliderInput
+                 hr(),
+                 helpText("Click on a county to see its true score!
+                 Selectable years are 2014, 2018 or 2021.")
                ), # end sidebarPanel
              mainPanel( # start main panel 2
                tmapOutput(outputId = "pollution_map"),
                br(),
-                 p("This map allows you to explore a variety pollution metrics across Counties in California from the EPA CalEnviroscreen Reports! 
+                 p("This map allows users to explore a variety pollution metrics across Counties in California from the EPA CalEnviroscreen Reports! 
                    This helps to visualize the changes each county has experienced in the last 8 years to highlight which are in the need of management 
-                   efforts."),
-               p("Selectable years are 2014, 2018 or 2021. 
-                   Click on a county to see its true score!")
+                   efforts.")
                ) # end main panel 2
              ) # end sidebarLayout
              ), # end tabpanel 2
