@@ -255,7 +255,10 @@ navbarPage("CalEnviroScreen Interactive Tool",
              hr(),
              helpText("By selecting a county from the top-down menu, users can view the mean change in pollution burden percentages through time, from 2014-2021."),
               ), # end sidebarPanel 5
-           mainPanel(plotOutput("pollutionburden_plot")) # end mainPanel 5
+           mainPanel(plotOutput("pollutionburden_plot"),
+                     br(),
+                     p("Pollution burden percentages are based on toxin exposure and environmental effects. Toxin exposures include ozone concentrations, PM 2.5 concentrations, diesel particulate matter emissions, drinking water contaminants, and pesticide use. Environmental effects include proximities to cleanup sites, groundwater threats, hazrdous waste, impaired water bodies, and solid waste sites and facilities. When calculating the pollution burden scores, environmental effects are weighted half as much as the exposures because it is assumed that environmental effects components represent the presence of pollutants in a community rather than direct exposure to them."),
+                     ) # end mainPanel 5
             ) # end sidebarLayout 5
           ), # end tabpanel 5
 
