@@ -83,7 +83,8 @@ complete_map <- almost_complete_map %>%
 pollution_graph <- complete_map %>%
   select(california_county, name, value, year) %>%
   filter(year == "2021") %>%
-  group_by(california_county)
+  group_by(california_county) %>%
+  mutate(name = fct_relevel(name, "Pollution Burden %", "Toxic Release %", "Hazardous Waste %", "PM 2.5 %", "Groundwater Threats %", "Pesticides %"))
 
 ### tab 3
 
@@ -160,8 +161,12 @@ ui <- fluidPage(theme = shiny_theme,
 navbarPage("CalEnviroScreen Interactive Tool",
     tabPanel("Project Overview",
              titlePanel(h2("Environmental Justice Screening and Mapping Tool", align = "center")),
-      mainPanel(
-        fluidRow(
+             titlePanel(h3("Created By: Taylor Gries, Allison, Logan", align = "center")),
+             br(),
+             br(),
+             br(),
+        fixedRow(
+          column(8,
         h1("Project Description", align = "center"),
         p("CalEnviroScreen was designed to assist CalEPA with carrying out its environmental justice mission to ensure the fair treatment of all Californians, including minority and low-income communities.",
           ),
@@ -177,8 +182,15 @@ navbarPage("CalEnviroScreen Interactive Tool",
         p("2. California Office of Environmental Health Hazard Assessment. CalEnviroScreen 3.0 Data. 2018. https://data.ca.gov/dataset/calenviroscreen-3-0-results"),
         br(),
         p("3. California Office of Environmental Health Hazard Assessment. CalEnviroScreen 2.0 Data. 2014. https://data.ca.gov/dataset/calenviroscreen-2-0"),
-        ) # end fluidRow
-      ), #end mainpanel
+        ), # end column
+        column(4,
+              br(), 
+              br(), 
+              br(), 
+              br(), 
+              img(src = "pollution_burden.jpg", width = 450),
+        ), # end column
+        ), # end fixedrow
     ), # end tabPanel
     
 ##### tab 2  ######
@@ -193,10 +205,11 @@ navbarPage("CalEnviroScreen Interactive Tool",
                                      selected = "Alameda"
                               ), #end checkboxGroupInput
                   hr(),
-                  helpText("By selecting multiple counties from the top-down menu, users can view how pollution variables compare bassed on the 2020 data."),
+                  helpText("By selecting multiple counties from the top-down menu, users can compare differnt pollution variables based on county."),
                 ), # end sidebarPanel 2
               mainPanel(plotOutput("pollution_plot"), # end mainPanel 2
-              br(),
+              p("Communities of color often bear disproportionate burden from pollution from multiple sources. Multiple factors or stressors contribute to the overall pollution burden."),
+              p("In this report, pollution burden includes exposures and environmental effects. Pollution buden encompasses multiple variables such as Ozone Concentration, PM 2.5 Concentrations, Diesel PM emissions, Drinking Water Contaminants, Children's Lead Risk from Housing, Pesticide Use, Toxic Releases from Facilities, and Traffic Impacts. Our team chose a few other key pollution variables to get an more specific view on what goes into pollution burden."),
               ) # end mainPanel
               ) # end sidebarLayout 2
     ), # end tabpanel 2
@@ -208,7 +221,6 @@ navbarPage("CalEnviroScreen Interactive Tool",
                  "Choose Pollution Variable and Year",
                  hr(),
                  radioButtons(inputId = "pick_name",
-
                              label = "Select Variable",
                              choices = unique(map_data$name),
                              selected = "Pollution Burden %"
@@ -220,6 +232,8 @@ navbarPage("CalEnviroScreen Interactive Tool",
                              animate = TRUE, 
                              dragRange = TRUE
                  ), # end sliderInput
+                 hr(),
+                 helpText("Users can select different pollutions variables and view how they change over time based on California county."),
                ), # end sidebarPanel
              mainPanel( # start main panel 2
                tmapOutput(outputId = "pollution_map")
@@ -244,7 +258,7 @@ navbarPage("CalEnviroScreen Interactive Tool",
           ), # end tabpanel 5
 
     ) #end navbar
-) 
+)
 
 ##### end ui #####
 
@@ -343,6 +357,7 @@ output$tmap_ej <- renderTmap({
 
 
 shinyApp(ui = ui, server = server)
+
 
 
 
