@@ -107,7 +107,7 @@ ca_county_map <- st_read(here("data", "ca_counties","CA_Counties_TIGER2016.shp")
 map_data <- left_join(ca_county_map, complete_map, "california_county")
 
 
-#### tab 5 
+#### tab 4 
 
 ### sort by county for each data set, only include pollution percentage
 
@@ -140,6 +140,33 @@ complete_df2$year[complete_df2$year == 2] <- 2014
 complete_df2$year[complete_df2$year == 3] <- 2018
 complete_df2$year[complete_df2$year == 4] <- 2021
 
+#### tab 5
+# sort by county for each data set, only include PM from diesel emissions
+
+ces_2.0_clean3 <- ces_2.0 %>% 
+  select(`diesel_pm_pctl`, `california_county`) %>% 
+  group_by(california_county) %>% 
+  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
+  mutate(year = 2014)
+
+
+
+ces_3.0_clean3 <- ces_3.0 %>% 
+  select(`diesel_pm_pctl`, `california_county`) %>% 
+  group_by(california_county) %>% 
+  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
+  mutate(year = 2018)
+
+
+ces_4.0_clean3 <- ces_4.0 %>% 
+  select(`diesel_pm_pctl`, `california_county`) %>% 
+  group_by(california_county) %>% 
+  summarize_all(~mean(.x, na.rm = TRUE)) %>% 
+  mutate(year = 2021)
+
+
+
+complete_df3 <- bind_rows(ces_2.0_clean3, ces_3.0_clean3, ces_4.0_clean3)
 
 #### custom theme
 shiny_theme <- bs_theme(
@@ -254,13 +281,31 @@ navbarPage("CalEnviroScreen Interactive Tool",
                             selected = "Los Angeles"), #end dropdown county input
              hr(),
              helpText("By selecting a county from the top-down menu, users can view the mean change in pollution burden percentages through time, from 2014-2021."),
-              ), # end sidebarPanel 5
+              ), # end sidebarPanel 4
            mainPanel(plotOutput("pollutionburden_plot"),
                      br(),
                      p("Pollution burden percentages are based on toxin exposure and environmental effects. Toxin exposures include ozone concentrations, PM 2.5 concentrations, diesel particulate matter emissions, drinking water contaminants, and pesticide use. Environmental effects include proximities to cleanup sites, groundwater threats, hazrdous waste, impaired water bodies, and solid waste sites and facilities. When calculating the pollution burden scores, environmental effects are weighted half as much as the exposures because it is assumed that environmental effects components represent the presence of pollutants in a community rather than direct exposure to them."),
-                     ) # end mainPanel 5
-            ) # end sidebarLayout 5
-          ), # end tabpanel 5
+                     ) # end mainPanel 4
+            ) # end sidebarLayout 4
+          ), # end tabpanel 4
+
+##### tab 5 #####
+    tabPanel("California Diesel Particulate Matter Through Time",
+         sidebarLayout(
+           sidebarPanel(
+             selectInput(inputId = "pick_county_tab6",
+                         label = h3("Choose California County:"),
+                         choices = unique(complete_df3$california_county),
+                         selected = "Los Angeles"), #end dropdown county input
+             hr(),
+             helpText("By selecting a county from the top-down menu, users can view the mean change in diesel particulate matter percentages through time, from 2014-2021."),
+           ), # end sidebarPanel 5
+           mainPanel(plotOutput("dieselpm_plot"),
+                     br(),
+                     p("Diesel particulate matter percentages are based on diesel emissions from both on-road and non-road sources."),
+           ) # end mainPanel 5
+         ) # end sidebarLayout 5
+), # end tabpanel 5
 
     ) #end navbar
 )
@@ -356,6 +401,31 @@ output$tmap_ej <- renderTmap({
       theme(axis.text = element_text(size = 12)) +
       theme_minimal()
     ) # end renderPlot
+    
+    
+#### tab 5 output ####
+    
+# select county drop down
+    cal_reactive6 <- reactive({
+      complete_df3 %>%
+        filter(california_county %in% input$pick_county_tab6)
+    }) # end output$cal_reactive5
+    output$dieselpm_plot <- renderPlot(
+      ggplot(data = cal_reactive6(), aes(x = year, y = diesel_pm_pctl)) +
+        geom_col(fill = "darkgoldenrod2",
+                 color = "darkgoldenrod4",
+                 width = .5) +
+        geom_text(aes(label = round(diesel_pm_pctl, 1)), # label exact co2 values on graph
+                  vjust = 1.3, # adjust label placement and size
+                  hjust = 0.5,
+                  size = 4,
+                  color = "white") +
+        scale_x_continuous(breaks = c(2014,2018,2021)) +
+        labs(x = "\nYear\n", 
+             y = "\nDiesel PM %\n") +
+        theme(axis.text = element_text(size = 12)) +
+        theme_minimal()
+    )
 } 
 
 ##### end server #####
