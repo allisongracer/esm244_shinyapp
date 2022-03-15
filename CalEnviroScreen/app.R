@@ -292,7 +292,7 @@ server <- function(input, output) {
       coord_flip() +
       labs(x = "Pollution Variable",
            y = "Percentile %",
-           title = "Pollution Variable Percentiles by County",
+           title = "Pollution Variable Percentiles by County (2021 Data)",
            fill = "California County") +
       theme(axis.text = element_text(size = 12)) 
   ) # end renderPlot
