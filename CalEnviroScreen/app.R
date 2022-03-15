@@ -303,6 +303,8 @@ navbarPage("CalEnviroScreen Interactive Tool",
            mainPanel(plotOutput("dieselpm_plot"),
                      br(),
                      p("Diesel particulate matter percentages are based on diesel emissions from both on-road and non-road sources."),
+                     br(),
+                     p("Diesel PM emissions estimates are provided by the California Air Resources Board (CARB) for 16-square-kilometer grid cells that cover most of the state."),
            ) # end mainPanel 5
          ) # end sidebarLayout 5
 ), # end tabpanel 5
